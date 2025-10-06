@@ -1,0 +1,48 @@
+name: go-ci
+
+on:
+  push:
+    branches: [ "main", "feat/" ]
+  pull_request:
+    branches: [ "main", "feat/" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        subproject: [ "todo-cli" ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.subproject }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+
+      - name: Go env
+        run: go env
+
+      - name: Run tests with coverage
+        run: |
+          set -e
+          go test ./... -coverprofile=cover.out -covermode=atomic | tee ../${{ matrix.subproject }}-test-output.txt
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.subproject }}-coverage
+          path: ${{ matrix.subproject }}/cover.out
+          if-no-files-found: warn
+
+      - name: Upload test output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.subproject }}-test-output
+          path: ${{ matrix.subproject }}-test-output.txt
+          if-no-files-found: warn
