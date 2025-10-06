@@ -1,0 +1,11 @@
+name: Feature request
+description: Propose a feature or improvement
+labels: [feature]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What should be built?
+      description: Describe the value and acceptance criteria.
+    validations:
+      required: true
