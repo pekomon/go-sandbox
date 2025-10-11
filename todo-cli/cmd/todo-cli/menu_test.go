@@ -140,7 +140,7 @@ func TestMenuScenarios(t *testing.T) {
 						t.Setenv(k, v)
 					}
 
-					stdout, stderr, exit := runMenu(t, ep.args, tc.script)
+					stdout, stderr, exit := runMenuHarness(t, ep.args, tc.script)
 					if exit != tc.wantExit {
 						t.Fatalf("expected exit %d, got %d. stdout=%q stderr=%q", tc.wantExit, exit, stdout, stderr)
 					}
@@ -160,7 +160,7 @@ func TestMenuScenarios(t *testing.T) {
 	}
 }
 
-func runMenu(t *testing.T, args []string, input string) (string, string, int) {
+func runMenuHarness(t *testing.T, args []string, input string) (string, string, int) {
 	t.Helper()
 
 	inR, inW, err := os.Pipe()

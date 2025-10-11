@@ -4,6 +4,7 @@ Local TODO manager (CLI). Stores tasks in a JSON file on your machine.
 
 ## Features
 - Commands: `add`, `list`, `done <id>`, `rm <id>`, `clear`
+- Interactive menu: `todo-cli menu` or `TODO_CLI_MENU=1 todo-cli`
 - Default sort: newest first (by ID, descending); `list --reverse` flips order
 - JSON persistence at `~/.todo-cli/tasks.json` (overridable)
 - Standard library only; offline by default
@@ -60,6 +61,7 @@ todo-cli list [--reverse]       # List tasks (newest first; --reverse = oldest f
 todo-cli done <id>              # Mark the task with ID as done
 todo-cli rm <id>                # Remove the task with ID
 todo-cli clear                  # Remove all tasks
+todo-cli menu                   # Launch the interactive text menu
 Exit codes
 0 success
 
