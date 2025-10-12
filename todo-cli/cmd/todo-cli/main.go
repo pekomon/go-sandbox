@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/pekomon/go-sandbox/todo-cli/internal/storage"
 	"github.com/pekomon/go-sandbox/todo-cli/internal/tasks"
 	"github.com/pekomon/go-sandbox/todo-cli/internal/ui"
@@ -260,10 +261,92 @@ func (*nopWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 func runMenu() int {
 	if menuUI == nil {
-		fmt.Fprintln(os.Stderr, "interactive menu not available")
-		return 1
+		menuUI = ui.SurveyUI{}
 	}
+
+	options := []string{
+		"Add task",
+		"List tasks",
+		"Mark done",
+		"Remove task",
+		"Clear tasks",
+		"Exit",
+	}
+
 	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		idx, err := menuUI.Select("TODO CLI MENU", options)
+		if err != nil {
+			if errors.Is(err, terminal.InterruptErr) {
+				fmt.Fprintln(os.Stdout)
+				return 0
+			}
+			return runTextMenu(reader)
+		}
+
+		switch idx {
+		case 0:
+			text, err := promptLine(reader, "Enter task description: ")
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					fmt.Fprintln(os.Stdout)
+					return 0
+				}
+				fmt.Fprintln(os.Stderr, "input error:", err)
+				return 1
+			}
+			if text == "" {
+				fmt.Fprintln(os.Stdout, "no text entered")
+				continue
+			}
+			if exit := Run([]string{"add", text}); exit == 1 {
+				return 1
+			}
+		case 1:
+			if exit := menuList(); exit != -1 {
+				return exit
+			}
+		case 2:
+			id, ok, exitCode := promptID(reader, "mark done")
+			if exitCode >= 0 {
+				return exitCode
+			}
+			if !ok {
+				continue
+			}
+			if exit := Run([]string{"done", id}); exit == 1 {
+				return 1
+			}
+		case 3:
+			id, ok, exitCode := promptID(reader, "remove")
+			if exitCode >= 0 {
+				return exitCode
+			}
+			if !ok {
+				continue
+			}
+			if exit := Run([]string{"rm", id}); exit == 1 {
+				return 1
+			}
+		case 4:
+			if exit := Run([]string{"clear"}); exit == 1 {
+				return 1
+			}
+		case 5:
+			fmt.Fprintln(os.Stdout, "Goodbye!")
+			return 0
+		default:
+			fmt.Fprintln(os.Stderr, "invalid selection")
+		}
+	}
+}
+
+func runTextMenu(reader *bufio.Reader) int {
+	if reader == nil {
+		reader = bufio.NewReader(os.Stdin)
+	}
+
 	for {
 		fmt.Fprintln(os.Stdout, "")
 		fmt.Fprintln(os.Stdout, "TODO CLI MENU")
