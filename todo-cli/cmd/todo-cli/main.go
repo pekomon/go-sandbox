@@ -12,9 +12,12 @@ import (
 
 	"github.com/pekomon/go-sandbox/todo-cli/internal/storage"
 	"github.com/pekomon/go-sandbox/todo-cli/internal/tasks"
+	"github.com/pekomon/go-sandbox/todo-cli/internal/ui"
 )
 
 var ErrUnknownCommand = errors.New("unknown command")
+
+var menuUI ui.MenuUI
 
 type Command struct {
 	Name string
@@ -256,6 +259,10 @@ type nopWriter struct{}
 func (*nopWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 func runMenu() int {
+	if menuUI == nil {
+		fmt.Fprintln(os.Stderr, "interactive menu not available")
+		return 1
+	}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Fprintln(os.Stdout, "")
