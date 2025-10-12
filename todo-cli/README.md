@@ -9,6 +9,22 @@ Local TODO manager (CLI). Stores tasks in a JSON file on your machine.
 - JSON persistence at `~/.todo-cli/tasks.json` (overridable)
 - Standard library only; offline by default
 
+## Interactive menu (arrow keys)
+
+When run in an interactive terminal, the menu uses arrow keys via [survey.Select](https://github.com/AlecAivazis/survey) to choose an action:
+
+```
+TODO CLI MENU
+> Add task
+  List tasks
+  Mark done
+  Remove task
+  Clear tasks
+  Exit
+```
+
+Non-interactive shells fall back to the numbered text prompts.
+
 ## Installation
 
 Build from source (module lives in this subfolder):
