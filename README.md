@@ -4,7 +4,8 @@ Multi-project Go repository (Go baseline: 1.24.3). Each subproject lives in its 
 
 ## Subprojects
 - **todo-cli** — Local TODO manager CLI with JSON persistence (to be implemented in upcoming PRs).
-- _Planned_: **guessr**, **filesort** (to be added later, one at a time).
+- **guessr** — Number guessing CLI (module initialized; implementation coming next)
+- _Planned_: **filesort** (to be added later).
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
