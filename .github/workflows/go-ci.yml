@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        subproject: [ "todo-cli" ]
+        subproject: [ "todo-cli", "guessr" ]
     defaults:
       run:
         working-directory: ${{ matrix.subproject }}

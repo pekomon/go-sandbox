@@ -1,4 +1,4 @@
-SUBPROJECTS := todo-cli
+SUBPROJECTS := todo-cli guessr
 
 .PHONY: test-all
 test-all:
