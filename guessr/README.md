@@ -17,110 +17,122 @@ Build from source (this submodule lives in `guessr/`):
 cd guessr
 make build
 # Binary at: ./bin/guessr
-
+```
 
 Or with plain Go:
 
+```bash
 cd guessr
 go build -o bin/guessr ./cmd/guessr
+```
 
-Usage
+## Usage
 
-Basic run (defaults: --max=100, --attempts=7, random seed):
+Basic run (defaults: `--max=100`, `--attempts=7`, random seed):
 
+```bash
 ./bin/guessr
 # Type one integer per line and press Enter each time, e.g.:
 # 50
 # 75
 # ...
-
+```
 
 Deterministic run (useful for demos/tests):
 
+```bash
 ./bin/guessr --max=10 --attempts=5 --seed=42
-
+```
 
 You can script a quick interaction:
 
+```bash
 # Example: feed a few guesses from stdin
 printf "5\n7\n3\n" | ./bin/guessr --max=10 --attempts=5 --seed=42
+```
 
-Flags
-FlagDefaultDescription
---max100Upper bound of the secret number (range is 1..max).
---attempts7Maximum number of guesses.
---seed0RNG seed; 0 = non-deterministic (time-based). Non-zero = fixed.
-Output & Behavior
+## Flags
 
-On each guess: prints higher or lower.
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--max` | `100` | Upper bound of the secret number (range is 1..max). |
+| `--attempts` | `7` | Maximum number of guesses. |
+| `--seed` | `0` | RNG seed; `0` = non-deterministic (time-based), non-zero = fixed. |
 
-On success: prints Correct! and exits 0.
+## Output & Behavior
 
-On attempts exhausted: prints Game over! The number was N. and exits 0.
+On each guess: prints **higher** or **lower**.
 
-Non-integer input: prints Invalid input and does not consume an attempt.
+On success: prints **Correct!** and exits 0.
 
-Stats (JSON persistence)
+On attempts exhausted: prints **Game over! The number was N.** and exits 0.
+
+Non-integer input: prints **Invalid input** and does not consume an attempt.
+
+## Stats (JSON persistence)
 
 By default, stats are stored at:
 
-Path: ~/.guessr/stats.json
+`~/.guessr/stats.json`
 
 Override the path (useful for local experiments or tests):
 
+```bash
 export GUESSR_STATS_PATH="$(mktemp -d)/stats.json"
 ./bin/guessr --max=10 --attempts=3 --seed=1
-
+```
 
 The JSON schema is minimal:
 
+```json
 {
   "games": 3,
   "wins": 2,
   "total_guesses": 9,
   "average_guesses": 3.0
 }
+```
 
+`average_guesses = total_guesses / games`.
 
-average_guesses = total_guesses / games.
-
-Testing & Coverage
+## Testing & Coverage
 
 Run tests for this subproject:
 
+```bash
 cd guessr
 make test
-
+```
 
 Generate a local coverage report:
 
+```bash
 cd guessr
 make cover
 # Produces cover.out and a summary
+```
 
+GitHub Actions runs tests on PRs affecting `guessr/` and uploads coverage artifacts.
 
-GitHub Actions runs tests on PRs affecting guessr/ and uploads coverage artifacts.
+## Exit codes
 
-Exit codes
-
-0 success (win or clean game over)
-
-1 runtime/storage error (e.g., I/O failure)
-
-2 usage error (flag parse error)
+- `0` success (win or clean game over)
+- `1` runtime/storage error (e.g., I/O failure)
+- `2` usage error (flag parse error)
 
 Errors are printed to stderr; normal game output goes to stdout.
 
-Troubleshooting
+## Troubleshooting
 
-“Invalid input” appears
+### “Invalid input” appears
 The program expects integers per line. The message does not consume attempts; just enter a valid number.
 
-Stats file is corrupted
+### Stats file is corrupted
 The program returns an error on JSON parsing. Move the file aside and re-run:
 
+```bash
 mv ~/.guessr/stats.json ~/.guessr/stats.json.bak.$(date +%s)
+```
 
-
-Different results between runs
-Set a non-zero --seed to make runs deterministic.
+### Different results between runs
+Set a non-zero `--seed` to make runs deterministic.
