@@ -16,3 +16,6 @@ Multi-project Go repository (Go baseline: 1.24.3). Each subproject lives in its 
 ```bash
 make test-all
 ```
+
+## For AI agents & contributors
+See [agents.md](agents.md) for repository conventions, PR workflow (tests-first), Go/toolchain rules, CI patterns, and subproject templates.
