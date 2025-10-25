@@ -19,10 +19,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go-version: [ "1.24.x", "1.25.x" ]
     defaults:
       run:
         working-directory: guessr
@@ -30,10 +26,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Go ${{ matrix.go-version }}
+      - name: Setup Go 1.25.x
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: "1.25.x"
 
       - name: Go env
         run: go env
@@ -41,18 +37,18 @@ jobs:
       - name: Run tests with coverage
         run: |
           set -e
-          go test ./... -coverprofile=cover.out -covermode=atomic | tee ../guessr-test-output-${{ matrix.go-version }}.txt
+          go test ./... -coverprofile=cover.out -covermode=atomic | tee ../guessr-test-output.txt
 
-      - name: Upload coverage (${{ matrix.go-version }})
+      - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: guessr-coverage-${{ matrix.go-version }}
+          name: guessr-coverage
           path: guessr/cover.out
           if-no-files-found: warn
 
-      - name: Upload test output (${{ matrix.go-version }})
+      - name: Upload test output
         uses: actions/upload-artifact@v4
         with:
-          name: guessr-test-output-${{ matrix.go-version }}
-          path: guessr-test-output-${{ matrix.go-version }}.txt
+          name: guessr-test-output
+          path: guessr-test-output.txt
           if-no-files-found: warn

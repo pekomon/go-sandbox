@@ -1,6 +1,6 @@
 # go-sandbox
 
-Multi-project Go repository (Go baseline: 1.24.3). Each subproject lives in its own module for clean boundaries, reproducible builds, and focused CI.
+Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its own module for clean boundaries, reproducible builds, and focused CI.
 
 ## Subprojects
 - **todo-cli** — Local TODO manager CLI with JSON persistence (to be implemented in upcoming PRs).
