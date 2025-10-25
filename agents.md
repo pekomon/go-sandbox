@@ -1,6 +1,6 @@
 # Agents guide
 
-Audience: code-generation agents and contributors (Codex, Copilot, ChatGPT Coder).  
+Audience: code-generation agents and contributors (Codex, Copilot, ChatGPT Coder).
 Language: English only for code, comments, READMEs, commit messages.
 
 ## Repository shape
@@ -9,9 +9,11 @@ Language: English only for code, comments, READMEs, commit messages.
 - Root contains a minimal Makefile and top-level docs.
 
 ## Go & toolchain
-- Baseline: **Go 1.24** with `toolchain go1.24.3` in each module.
-- CI uses `actions/setup-go@v5` with `go-version: "1.24.x"`.
-- Future upgrade to 1.25 is tracked separately (do not change versions unless the PR is explicitly about toolchain).
+Baseline: Go 1.25.
+
+CI uses actions/setup-go@v5 with go-version: "1.25.x".
+
+Prefer not to use toolchain directives in modules to avoid redundant downloads in CI.
 
 ## Workflow rules
 - **One logical unit per PR**. Keep PRs focused and small.
@@ -46,7 +48,7 @@ Language: English only for code, comments, READMEs, commit messages.
 
 ## Subproject template (each module should have)
 - `README.md` — install, usage, tests/coverage, env vars, exit codes
-- `go.mod` — `go 1.24`, `toolchain go1.24.3`
+- `go.mod` — `go 1.25`
 - `Makefile` — targets: `deps` (tidy), `build` (only main pkg), `test`, `cover`, `clean`
 - `.gitignore` — standard Go ignores
 - `cmd/<binary>/` — CLI entrypoint (`package main`)
@@ -55,7 +57,7 @@ Language: English only for code, comments, READMEs, commit messages.
 ## CI
 - **One workflow per subproject** under `.github/workflows/<name>.yml`.
 - Use `on.push.paths` / `on.pull_request.paths` filters so only the touched subproject runs.
-- Steps: checkout, setup-go (1.24.x), `go test ./... -coverprofile=cover.out`, upload artifacts.
+- Steps: checkout, setup-go (1.25.x), `go test ./... -coverprofile=cover.out`, upload artifacts.
 
 ## Adding a new subproject (checklist)
 1) Create folder with module files: `README.md`, `.gitignore`, `Makefile`, `go.mod`, `internal/.gitkeep`, `cmd/<name>/.gitkeep`.
