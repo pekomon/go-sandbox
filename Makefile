@@ -1,4 +1,4 @@
-SUBPROJECTS := todo-cli guessr
+SUBPROJECTS := todo-cli guessr filesort
 
 .PHONY: test-all
 test-all:
