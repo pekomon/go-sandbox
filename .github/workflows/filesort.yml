@@ -1,0 +1,54 @@
+name: filesort
+
+on:
+  push:
+    branches: [ "main", "feat/**", "infra/**", "fix/**", "docs/**" ]
+    paths:
+      - "filesort/**"
+      - "Makefile"
+      - "README.md"
+      - ".github/workflows/filesort.yml"
+  pull_request:
+    branches: [ "main", "feat/**", "infra/**", "fix/**", "docs/**" ]
+    paths:
+      - "filesort/**"
+      - "Makefile"
+      - "README.md"
+      - ".github/workflows/filesort.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: filesort
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.25.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Go env
+        run: go env
+
+      - name: Run tests with coverage
+        run: |
+          set -e
+          go test ./... -coverprofile=cover.out -covermode=atomic | tee ../filesort-test-output.txt
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: filesort-coverage
+          path: filesort/cover.out
+          if-no-files-found: warn
+
+      - name: Upload test output
+        uses: actions/upload-artifact@v4
+        with:
+          name: filesort-test-output
+          path: filesort-test-output.txt
+          if-no-files-found: warn
