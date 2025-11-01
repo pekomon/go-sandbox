@@ -6,6 +6,7 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **todo-cli** — Local TODO manager CLI with JSON persistence (to be implemented in upcoming PRs).
 - **guessr** — Number guessing CLI (module initialized; implementation coming next)
 - **filesort** — CLI tool to classify files in a directory by type (by extension). Module initialized; implementation coming next.
+- **snake** — GUI snake game (Ebiten-based; module initialized, implementation coming next).
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
