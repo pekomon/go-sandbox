@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	ErrNotImplemented = errors.New("not implemented")
-	ErrGameOver       = errors.New("game over")
+	ErrGameOver = errors.New("game over")
 )
 
 type Dir int
@@ -56,6 +55,9 @@ func New(cfg Config) (*State, error) {
 	if cfg.StartLen < 1 {
 		cfg.StartLen = 1
 	}
+	if cfg.StartLen > cfg.Width {
+		cfg.StartLen = cfg.Width
+	}
 	if cfg.RNG == nil {
 		cfg.RNG = rand.New(rand.NewSource(1))
 	}
@@ -68,8 +70,13 @@ func New(cfg Config) (*State, error) {
 	}
 	cy := cfg.Height / 2
 	cx := cfg.Width / 2
+	startX := cx - (cfg.StartLen - 1)
+	if startX < 0 {
+		startX = 0
+	}
 	for i := 0; i < cfg.StartLen; i++ {
-		s.Snake = append(s.Snake, Pos{X: cx - i, Y: cy})
+		x := startX + (cfg.StartLen - 1 - i)
+		s.Snake = append(s.Snake, Pos{X: x, Y: cy})
 	}
 	s.placeApple()
 	return s, nil
@@ -122,6 +129,10 @@ func (s *State) Step() error {
 	}
 	s.Snake = newSnake
 	return nil
+}
+
+func (s *State) Size() (int, int) {
+	return s.w, s.h
 }
 
 func (s *State) placeApple() {
