@@ -3,10 +3,15 @@
 Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its own module for clean boundaries, reproducible builds, and focused CI.
 
 ## Subprojects
-- **todo-cli** — Local TODO manager CLI with JSON persistence (to be implemented in upcoming PRs).
-- **guessr** — Number guessing CLI (module initialized; implementation coming next)
-- **filesort** — CLI tool to classify files in a directory by type (by extension). Module initialized; implementation coming next.
-- **snake** — GUI snake game (Ebiten-based; module initialized, implementation coming next).
+- **todo-cli** — Local TODO manager CLI with JSON persistence, menu UI, and stdlib-only deps.
+- **guessr** — Number guessing CLI with hints, stats tracking, and deterministic seeds.
+- **filesort** — Directory sorter that buckets files by type with a dry-run preview.
+- **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
+
+## Upcoming subprojects
+- **MemeSweeper** — Ebiten desktop puzzler inspired by Minesweeper where tiles hide reaction memes instead of mines; timed boards, flag counts, and seeded layouts.
+- **ThumbForge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
+- **WeatherTape** — Terminal forecast visualizer that consumes offline data files and prints ASCII trend charts for temperature, precipitation, and wind.
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
