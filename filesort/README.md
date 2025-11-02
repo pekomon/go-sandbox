@@ -3,8 +3,6 @@
 CLI tool to classify files in a directory into subfolders by type (based on extension).  
 Implemented in pure Go (stdlib only).
 
----
-
 ## Features
 
 - Classifies files into:
@@ -14,8 +12,6 @@ Implemented in pure Go (stdlib only).
   - `other/` — everything else
 - Supports **dry-run mode** (`--dry-run`) to preview planned moves without modifying files.
 - Non-recursive for simplicity; acts only on the top-level of the given directory.
-
----
 
 ## Installation
 
@@ -76,6 +72,14 @@ Downloads/
 | Flag | Description |
 | ---- | ----------- |
 | `--dry-run` | Compute and display the plan without moving files. |
+
+## Exit codes
+
+- `0` — Success (plan printed in dry-run mode or moves applied without errors)
+- `1` — Runtime failure (I/O issues, invalid destination plan, move failure)
+- `2` — Usage error (flag parse failure or missing/extra arguments)
+
+Errors are printed to stderr; dry-run and progress messages go to stdout.
 
 ## Testing & Coverage
 
