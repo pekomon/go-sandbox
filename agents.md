@@ -5,7 +5,8 @@ Language: English only for code, comments, READMEs, commit messages.
 
 ## Repository shape
 - Multi-project Go repo; **each subproject is its own module** (has its own `go.mod`).
-- Current subprojects: `todo-cli/`, `guessr/`. Future: `filesort/`, etc.
+- Current subprojects: `todo-cli/`, `guessr/`, `filesort/`, `snake/`.
+- Upcoming ideas tracked in the root README: MemeSweeper, ThumbForge, WeatherTape.
 - Root contains a minimal Makefile and top-level docs.
 
 ## Go & toolchain
@@ -61,7 +62,7 @@ Prefer not to use toolchain directives in modules to avoid redundant downloads i
 
 ## Adding a new subproject (checklist)
 1) Create folder with module files: `README.md`, `.gitignore`, `Makefile`, `go.mod`, `internal/.gitkeep`, `cmd/<name>/.gitkeep`.
-2) Update the root README subprojects list.
+2) Update the root README subprojects list (and remove the project from the “Upcoming subprojects” section if present).
 3) Add a dedicated workflow file for the new subproject.
 4) Open issues: tests PR, feature PR, docs PR (in that order).
 5) Keep stdlib-only unless otherwise justified.
