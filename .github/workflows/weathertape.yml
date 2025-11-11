@@ -1,0 +1,54 @@
+name: weathertape
+
+on:
+  push:
+    branches: [ "main", "feat/**", "infra/**", "fix/**", "docs/**" ]
+    paths:
+      - "weathertape/**"
+      - "Makefile"
+      - "README.md"
+      - ".github/workflows/weathertape.yml"
+  pull_request:
+    branches: [ "main", "feat/**", "infra/**", "fix/**", "docs/**" ]
+    paths:
+      - "weathertape/**"
+      - "Makefile"
+      - "README.md"
+      - ".github/workflows/weathertape.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: weathertape
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.25.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Go env
+        run: go env
+
+      - name: Run tests with coverage
+        run: |
+          set -e
+          go test ./... -coverprofile=cover.out -covermode=atomic | tee ../weathertape-test-output.txt
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: weathertape-coverage
+          path: weathertape/cover.out
+          if-no-files-found: warn
+
+      - name: Upload test output
+        uses: actions/upload-artifact@v4
+        with:
+          name: weathertape-test-output
+          path: weathertape-test-output.txt
+          if-no-files-found: warn
