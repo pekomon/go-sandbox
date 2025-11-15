@@ -1,7 +1,9 @@
 package forecast
 
 import (
-	"errors"
+	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 )
 
@@ -15,10 +17,43 @@ type Entry struct {
 	SourceFilePath string
 }
 
-// ErrNotImplemented indicates the loader has not been implemented yet.
-var ErrNotImplemented = errors.New("forecast: loader not implemented")
+type rawEntry struct {
+	Hour          string  `json:"hour"`
+	TempC         float64 `json:"temp_c"`
+	PrecipPercent int     `json:"precip_pct"`
+	WindKPH       float64 `json:"wind_kph"`
+	WindDirection string  `json:"wind_dir"`
+}
 
 // LoadFile loads forecast data from a JSON/CSV file path and returns normalized entries.
 func LoadFile(path string) ([]Entry, error) {
-	return nil, ErrNotImplemented
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw []rawEntry
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("forecast: decode %s: %w", path, err)
+	}
+	if len(raw) == 0 {
+		return nil, fmt.Errorf("forecast: no entries in %s", path)
+	}
+
+	entries := make([]Entry, len(raw))
+	for i, r := range raw {
+		ts, err := time.Parse(time.RFC3339, r.Hour)
+		if err != nil {
+			return nil, fmt.Errorf("forecast: parse hour %q (row %d): %w", r.Hour, i, err)
+		}
+		entries[i] = Entry{
+			Time:           ts,
+			TempC:          r.TempC,
+			PrecipPercent:  r.PrecipPercent,
+			WindKPH:        r.WindKPH,
+			WindDirection:  r.WindDirection,
+			SourceFilePath: path,
+		}
+	}
+	return entries, nil
 }
