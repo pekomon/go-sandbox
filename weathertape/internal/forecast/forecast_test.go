@@ -1,6 +1,7 @@
 package forecast_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -11,7 +12,7 @@ import (
 func TestLoadFileSuccess(t *testing.T) {
 	t.Helper()
 
-	path := filepath.Join("..", "..", "testdata", "sample.json")
+	path := filepath.Join("..", "..", "cmd", "weathertape", "sampledata", "sample.json")
 	entries, err := forecast.LoadFile(path)
 	if err != nil {
 		t.Fatalf("LoadFile(%q) returned error: %v", path, err)
@@ -48,5 +49,21 @@ func TestLoadFileMissing(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "missing.json")
 	if _, err := forecast.LoadFile(path); err == nil {
 		t.Fatalf("LoadFile(%q) returned nil error; want failure for missing file", path)
+	}
+}
+
+func TestLoadBytes(t *testing.T) {
+	path := filepath.Join("..", "..", "cmd", "weathertape", "sampledata", "sample.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read sample fixture: %v", err)
+	}
+
+	entries, err := forecast.LoadBytes(data, "inline")
+	if err != nil {
+		t.Fatalf("LoadBytes returned error: %v", err)
+	}
+	if entries[0].SourceFilePath != "inline" {
+		t.Fatalf("SourceFilePath = %q; want inline", entries[0].SourceFilePath)
 	}
 }

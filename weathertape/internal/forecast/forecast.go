@@ -25,19 +25,23 @@ type rawEntry struct {
 	WindDirection string  `json:"wind_dir"`
 }
 
-// LoadFile loads forecast data from a JSON/CSV file path and returns normalized entries.
+// LoadFile loads forecast data from the given file path.
 func LoadFile(path string) ([]Entry, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
+	return LoadBytes(data, path)
+}
 
+// LoadBytes parses forecast data from the provided JSON payload.
+func LoadBytes(data []byte, source string) ([]Entry, error) {
 	var raw []rawEntry
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, fmt.Errorf("forecast: decode %s: %w", path, err)
+		return nil, fmt.Errorf("forecast: decode %s: %w", source, err)
 	}
 	if len(raw) == 0 {
-		return nil, fmt.Errorf("forecast: no entries in %s", path)
+		return nil, fmt.Errorf("forecast: no entries in %s", source)
 	}
 
 	entries := make([]Entry, len(raw))
@@ -52,7 +56,7 @@ func LoadFile(path string) ([]Entry, error) {
 			PrecipPercent:  r.PrecipPercent,
 			WindKPH:        r.WindKPH,
 			WindDirection:  r.WindDirection,
-			SourceFilePath: path,
+			SourceFilePath: source,
 		}
 	}
 	return entries, nil

@@ -31,16 +31,27 @@ go build -o bin/weathertape ./cmd/weathertape
 
 ## Usage
 
-The CLI entry point will live under `cmd/weathertape`. Once the feature PRs land you will be able to run the tool via:
-
 ```bash
-./bin/weathertape --source ./testdata/sample.json
+# Read a custom data file
+./bin/weathertape --source ./fixtures/hourly.json --units imperial
+
+# Use RFC3339 range filters
+./bin/weathertape --start 2025-02-10T10:00:00Z --end 2025-02-10T12:00:00Z
 ```
 
-Environment overrides (subject to change during implementation):
+Flags:
 
-- `WEATHERTAPE_DATA` — absolute/relative path to the forecast data file
-- `WEATHERTAPE_CACHE` — override the cache directory (default `~/.weathertape`)
+| Flag | Description |
+| ---- | ----------- |
+| `--source` | Path to a JSON forecast file. Defaults to `WEATHERTAPE_DATA`. When unset, the binary falls back to the embedded sample dataset (taken from `cmd/weathertape/sampledata/sample.json`). |
+| `--units` | Either `metric` (°C / kph, default) or `imperial` (°F / mph). |
+| `--width` | Width (in characters) of the ASCII temperature bar. Minimum 5, default 10. |
+| `--start`, `--end` | Optional RFC3339 timestamps to filter the hourly rows. |
+
+Environment overrides:
+
+- `WEATHERTAPE_DATA` — Absolute/relative path to a data file (used when `--source` is omitted).
+- `WEATHERTAPE_CACHE` — Override the cache directory (default `~/.weathertape`); reserved for future persistence work.
 
 ## Testing & Coverage
 
