@@ -1,70 +1,123 @@
 # WeatherTape
 
-WeatherTape is a terminal dashboard that renders hourly forecast data as an ASCII "tape" with temperature bars and precipitation markers. The module is scaffolded here; implementation will follow the repo's tests-first workflow.
-
----
-
-## Planned Features
-
-- Load deterministic weather samples from JSON/CSV files (offline only).
-- Render a scrolling ASCII tape of hours, temperatures, precipitation chance, and wind arrows.
-- Provide CLI flags for timeframe selection and units (metric/imperial).
-- Persist recent runs to `~/.weathertape/` for later comparison (configurable via env var).
+WeatherTape is a terminal dashboard that turns structured hourly forecast data into an ASCII tape. It loads JSON forecasts (either embedded sample data or a user-provided file), filters the hours you care about, and renders aligned rows that show the hour, temperature, precipitation chance, wind speed/direction, and a proportional temperature bar.
 
 ---
 
 ## Installation
 
+Requirements: Go 1.25+, `make`, and a POSIX shell.
+
 ```bash
 # From repo root
 cd weathertape
-make build
-# Binary will be created at ./bin/weathertape
+make deps   # optional; runs go mod tidy
+make build  # produces ./bin/weathertape
 ```
 
-Or directly with Go:
+If you prefer raw Go commands:
 
 ```bash
 cd weathertape
 go build -o bin/weathertape ./cmd/weathertape
 ```
 
+---
+
 ## Usage
 
-```bash
-# Read a custom data file
-./bin/weathertape --source ./fixtures/hourly.json --units imperial
-
-# Use RFC3339 range filters
-./bin/weathertape --start 2025-02-10T10:00:00Z --end 2025-02-10T12:00:00Z
-```
-
-Flags:
-
-| Flag | Description |
-| ---- | ----------- |
-| `--source` | Path to a JSON forecast file. Defaults to `WEATHERTAPE_DATA`. When unset, the binary falls back to the embedded sample dataset (taken from `cmd/weathertape/sampledata/sample.json`). |
-| `--units` | Either `metric` (°C / kph, default) or `imperial` (°F / mph). |
-| `--width` | Width (in characters) of the ASCII temperature bar. Minimum 5, default 10. |
-| `--start`, `--end` | Optional RFC3339 timestamps to filter the hourly rows. |
-
-Environment overrides:
-
-- `WEATHERTAPE_DATA` — Absolute/relative path to a data file (used when `--source` is omitted).
-- `WEATHERTAPE_CACHE` — Override the cache directory (default `~/.weathertape`); reserved for future persistence work.
-
-## Testing & Coverage
+With no flags, WeatherTape renders the embedded `cmd/weathertape/sampledata/sample.json` payload:
 
 ```bash
 cd weathertape
-make test
-make cover
+./bin/weathertape
 ```
 
-These targets will execute the module's unit/integration tests once they are added. CI runs the same commands and publishes coverage artifacts for PRs touching `weathertape/`.
+Typical invocations:
 
-## Development Notes
+```bash
+# Use a custom dataset with imperial units and a wider bar graph
+./bin/weathertape --source ./testdata/hourly.json --units imperial --width 20
 
-- Go 1.25 baseline; no external dependencies planned.
-- Logic will live under `internal/` packages, leaving `cmd/weathertape` as glue code.
-- Follow the shared conventions in [../agents.md](../agents.md) for branching, tests-first flow, and CI additions.
+# Narrow the tape to a specific RFC3339 time window
+./bin/weathertape \
+  --start 2025-02-10T10:00:00Z \
+  --end   2025-02-10T14:00:00Z
+```
+
+Sample output (metric, width=10):
+
+```
+Hour  Temp  Trend       Precip Wind
+----  ----  ----------  ------ ----
+09:00 12°C  █░░░░░░░░░░   10%  NE8kph
+10:00 15°C  ███░░░░░░░░   40%  E11kph
+11:00 19°C  ███████░░░░   70%  SE20kph
+12:00 21°C  ██████████   15%  S25kph
+```
+
+### CLI flags
+
+| Flag | Default | Description |
+| ---- | ------- | ----------- |
+| `--source` | *(empty)* | Optional path to a JSON forecast file. When omitted, WeatherTape uses `WEATHERTAPE_DATA` (if set) and finally the embedded sample. |
+| `--units` | `metric` | Temperature/wind units (`metric`, `imperial`, `c`, `f`, etc.). |
+| `--width` | `10` | Width (characters) of the temperature bar. Minimum accepted value is 5. |
+| `--start` | *(empty)* | RFC3339 timestamp that acts as the inclusive start of the rendered range. |
+| `--end` | *(empty)* | RFC3339 timestamp that acts as the inclusive end of the rendered range. |
+
+### Data format
+
+WeatherTape expects a JSON array whose entries match:
+
+```json
+{
+  "hour": "2025-02-10T09:00:00Z",
+  "temp_c": 12.0,
+  "precip_pct": 10,
+  "wind_kph": 8.0,
+  "wind_dir": "NE"
+}
+```
+
+The loader validates the timestamp (`hour`) and rejects empty datasets.
+
+---
+
+## Environment variables
+
+| Variable | Purpose |
+| -------- | ------- |
+| `WEATHERTAPE_DATA` | Absolute or relative path to a forecast file that becomes the default when `--source` is not provided. |
+
+---
+
+## Exit codes
+
+| Code | Meaning |
+| ---- | ------- |
+| `0` | Success: forecast rows rendered to stdout. |
+| `1` | Runtime failure (file I/O, parsing errors, empty result set after filtering). |
+| `2` | Invalid CLI usage (flag parsing errors, unsupported units, invalid `--start/--end`, or `--width < 5`). |
+
+Normal output is printed to stdout; all error messages go to stderr.
+
+---
+
+## Testing & coverage
+
+```bash
+cd weathertape
+make test   # go test ./...
+make cover  # go test ./... -coverprofile=cover.out && go tool cover -func cover.out
+```
+
+The GitHub Actions workflow mirrors these targets and uploads the `cover.out` artifact for pull requests touching this module.
+
+---
+
+## Development notes
+
+- Modules stick to the Go standard library; `internal/tape` owns rendering and `internal/forecast` owns loading/validation.
+- The CLI lives in `cmd/weathertape` and embeds a small dataset for demo/testing.
+- Follow the repository conventions in [../agents.md](../agents.md) for branching strategy, PR templates, and release cadence.
