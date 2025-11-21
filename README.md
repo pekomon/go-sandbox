@@ -6,11 +6,11 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **todo-cli** — Local TODO manager CLI with JSON persistence, menu UI, and stdlib-only deps.
 - **guessr** — Number guessing CLI with hints, stats tracking, and deterministic seeds.
 - **filesort** — Directory sorter that buckets files by type with a dry-run preview.
-- **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts (module scaffolded; functionality queued up next).
+- **memesweeper** — Ebiten puzzler inspired by Minesweeper where tiles hide reaction memes; module scaffolded via issue #62 with gameplay to follow.
+- **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
 
 ## Upcoming subprojects
-- **MemeSweeper** — Ebiten desktop puzzler inspired by Minesweeper where tiles hide reaction memes instead of mines; timed boards, flag counts, and seeded layouts.
 - **ThumbForge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
 
 ## Principles
