@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/pekomon/go-sandbox/memesweeper/internal/ui"
 )
 
 const version = "0.1.0-dev"
@@ -30,6 +32,15 @@ func run(args []string) int {
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "MemeSweeper gameplay is not implemented yet. Follow upcoming issues for progress.")
-	return 1
+	cfg := ui.Config{
+		Rows:      10,
+		Cols:      10,
+		MemeCount: 15,
+		TileSize:  32,
+	}
+	if err := ui.Run(cfg); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	return 0
 }
