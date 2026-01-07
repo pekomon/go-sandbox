@@ -27,6 +27,7 @@ var (
 
 // Config controls the game loop and board dimensions.
 type Config struct {
+	Preset    board.Preset
 	Rows      int
 	Cols      int
 	MemeCount int
@@ -36,10 +37,11 @@ type Config struct {
 
 // Game implements the Ebiten game loop for MemeSweeper.
 type Game struct {
-	cfg    Config
-	assets *Assets
-	board  *board.Board
-	rng    *rand.Rand
+	cfg        Config
+	difficulty board.Preset
+	assets     *Assets
+	board      *board.Board
+	rng        *rand.Rand
 }
 
 // Run loads assets, configures the window, and starts the Ebiten loop.
@@ -65,20 +67,27 @@ func Run(cfg Config) error {
 
 // NewGame builds a new Ebiten game instance.
 func NewGame(cfg Config, assets *Assets) (*Game, error) {
-	if cfg.Rows <= 0 || cfg.Cols <= 0 || cfg.TileSize <= 0 {
-		return nil, fmt.Errorf("ui: invalid board dimensions")
-	}
-	if cfg.MemeCount < 0 || cfg.MemeCount > cfg.Rows*cfg.Cols {
-		return nil, fmt.Errorf("ui: invalid meme count")
+	if cfg.TileSize <= 0 {
+		return nil, fmt.Errorf("ui: invalid tile size")
 	}
 	if assets == nil || assets.Meme == nil || assets.Flag == nil {
 		return nil, fmt.Errorf("ui: missing assets")
 	}
+	if cfg.Preset == "" && (cfg.Rows <= 0 || cfg.Cols <= 0) {
+		return nil, fmt.Errorf("ui: invalid board dimensions")
+	}
 
 	g := &Game{
-		cfg:    cfg,
-		assets: assets,
-		rng:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		cfg:        cfg,
+		difficulty: cfg.Preset,
+		assets:     assets,
+		rng:        rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
+	if err := g.applyPreset(cfg.Preset); err != nil {
+		return nil, err
+	}
+	if g.cfg.MemeCount < 0 || g.cfg.MemeCount > g.cfg.Rows*g.cfg.Cols {
+		return nil, fmt.Errorf("ui: invalid meme count")
 	}
 	if err := g.reset(); err != nil {
 		return nil, err
@@ -90,6 +99,11 @@ func (g *Game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return ebiten.Termination
 	}
+
+	if g.handleDifficultyShortcuts() {
+		return nil
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) ||
 		(g.board.Status != board.StatusActive &&
 			(inpututil.IsKeyJustPressed(ebiten.KeySpace) || inpututil.IsKeyJustPressed(ebiten.KeyEnter))) {
@@ -117,7 +131,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	flags := countFlags(g.board)
 	status := statusLabel(g.board.Status)
-	msg := fmt.Sprintf("Memes: %d  Flags: %d  Status: %s  (LMB reveal, RMB flag, R restart, Esc quit)", g.cfg.MemeCount, flags, status)
+	diffLabel := "Custom"
+	if g.difficulty != "" {
+		diffLabel = string(g.difficulty)
+	}
+	msg := fmt.Sprintf("Difficulty: %s  Memes: %d  Flags: %d  Status: %s  (LMB reveal, RMB flag, 1/2/3 difficulty, R restart, Esc quit)", diffLabel, g.cfg.MemeCount, flags, status)
 	if g.board.Status == board.StatusWon {
 		msg = "You win! Press R to restart or Esc to quit."
 	} else if g.board.Status == board.StatusLost {
@@ -146,6 +164,50 @@ func (g *Game) reset() error {
 	}
 	g.board = b
 	return nil
+}
+
+func (g *Game) applyPreset(preset board.Preset) error {
+	if preset == "" {
+		return nil
+	}
+	cfg, err := board.PresetConfig(preset, g.cfg.Seed)
+	if err != nil {
+		return err
+	}
+	g.cfg.Rows = cfg.Rows
+	g.cfg.Cols = cfg.Cols
+	g.cfg.MemeCount = cfg.MemeCount
+	g.cfg.Seed = cfg.Seed
+	g.difficulty = preset
+
+	ebiten.SetWindowSize(g.cfg.Cols*g.cfg.TileSize, g.cfg.Rows*g.cfg.TileSize)
+	return nil
+}
+
+func (g *Game) handleDifficultyShortcuts() bool {
+	if inpututil.IsKeyJustPressed(ebiten.Key1) {
+		return g.setDifficulty(board.PresetEasy)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.Key2) {
+		return g.setDifficulty(board.PresetMedium)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.Key3) {
+		return g.setDifficulty(board.PresetHard)
+	}
+	return false
+}
+
+func (g *Game) setDifficulty(preset board.Preset) bool {
+	if preset == "" || preset == g.difficulty {
+		return false
+	}
+	if err := g.applyPreset(preset); err != nil {
+		return false
+	}
+	if err := g.reset(); err != nil {
+		return false
+	}
+	return true
 }
 
 func (g *Game) handleReveal() error {
