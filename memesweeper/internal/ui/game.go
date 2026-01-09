@@ -56,7 +56,7 @@ func Run(cfg Config) error {
 	}
 
 	ebiten.SetWindowTitle(windowTitle)
-	ebiten.SetWindowSize(cfg.Cols*cfg.TileSize, cfg.Rows*cfg.TileSize)
+	ebiten.SetWindowSize(game.cfg.Cols*game.cfg.TileSize, game.cfg.Rows*game.cfg.TileSize)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
 
 	if err := ebiten.RunGame(game); err != nil && !errors.Is(err, ebiten.Termination) {
