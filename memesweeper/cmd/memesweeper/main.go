@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/pekomon/go-sandbox/memesweeper/internal/board"
 	"github.com/pekomon/go-sandbox/memesweeper/internal/ui"
 )
 
@@ -20,7 +21,9 @@ func run(args []string) int {
 	fs.SetOutput(io.Discard)
 
 	var showVersion bool
+	var difficulty string
 	fs.BoolVar(&showVersion, "version", false, "print the MemeSweeper version")
+	fs.StringVar(&difficulty, "difficulty", "medium", "difficulty preset: easy, medium, hard")
 
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -32,11 +35,15 @@ func run(args []string) int {
 		return 0
 	}
 
+	preset := board.Preset(difficulty)
+	if _, err := board.PresetConfig(preset, 0); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 2
+	}
+
 	cfg := ui.Config{
-		Rows:      10,
-		Cols:      10,
-		MemeCount: 15,
-		TileSize:  32,
+		Preset:   preset,
+		TileSize: 32,
 	}
 	if err := ui.Run(cfg); err != nil {
 		fmt.Fprintln(os.Stderr, err)

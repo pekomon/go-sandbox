@@ -32,6 +32,7 @@ The CLI launches the desktop UI:
 cd memesweeper
 ./bin/memesweeper --version   # prints 0.1.0-dev
 ./bin/memesweeper             # starts the Ebiten window
+./bin/memesweeper --difficulty hard
 ```
 
 You can also run without building:
@@ -45,7 +46,8 @@ Controls:
 
 - Left click: reveal tile
 - Right click: toggle flag
-- R / Space / Enter: restart
+- 1 / 2 / 3: easy / medium / hard
+- R / Space / Enter: restart (keeps current difficulty)
 - Esc: quit
 
 Issues #67-68 will introduce difficulty presets and CLI/UI selection.
