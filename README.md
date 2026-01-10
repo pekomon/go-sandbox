@@ -9,9 +9,7 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **memesweeper** — Ebiten puzzler inspired by Minesweeper where tiles hide reaction memes; module scaffolded via issue #62 with gameplay to follow.
 - **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
-
-## Upcoming subprojects
-- **ThumbForge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
+- **thumbforge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
