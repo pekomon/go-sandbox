@@ -45,6 +45,23 @@ func TestGenerateBatch(t *testing.T) {
 	}
 }
 
+func TestGenerateEmptyInput(t *testing.T) {
+	inDir := t.TempDir()
+	outDir := t.TempDir()
+
+	cfg := thumbforge.Config{
+		InputDir:  inDir,
+		OutputDir: outDir,
+		Size:      thumbforge.Size{Width: 2, Height: 2},
+		Format:    "png",
+	}
+
+	_, err := thumbforge.Generate(cfg)
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+}
+
 func writePNG(path string, width, height int) error {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {
