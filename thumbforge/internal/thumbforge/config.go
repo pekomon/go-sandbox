@@ -35,6 +35,20 @@ type Result struct {
 	Count int
 }
 
+// NormalizeFormat validates and normalizes an output format string.
+func NormalizeFormat(input string) (string, error) {
+	format := strings.ToLower(strings.TrimSpace(input))
+	if format == "" {
+		format = "png"
+	}
+	switch format {
+	case "png", "jpg", "jpeg":
+		return format, nil
+	default:
+		return "", fmt.Errorf("thumbforge: unsupported format %q", input)
+	}
+}
+
 // ParseSize parses a WxH size string (e.g. 320x240).
 func ParseSize(input string) (Size, error) {
 	parts := strings.Split(strings.ToLower(strings.TrimSpace(input)), "x")
@@ -64,9 +78,9 @@ func Generate(cfg Config) (Result, error) {
 		return Result{}, fmt.Errorf("thumbforge: invalid size")
 	}
 
-	format := strings.ToLower(strings.TrimSpace(cfg.Format))
-	if format == "" {
-		format = "png"
+	format, err := NormalizeFormat(cfg.Format)
+	if err != nil {
+		return Result{}, err
 	}
 	if err := os.MkdirAll(cfg.OutputDir, 0o755); err != nil {
 		return Result{}, err
@@ -90,6 +104,10 @@ func Generate(cfg Config) (Result, error) {
 			return Result{}, err
 		}
 		count++
+	}
+
+	if count == 0 {
+		return Result{}, fmt.Errorf("thumbforge: no input files found")
 	}
 
 	return Result{Count: count}, nil

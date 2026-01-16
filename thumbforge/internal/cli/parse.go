@@ -16,12 +16,16 @@ func ParseArgs(args []string) (thumbforge.Config, error) {
 	var inputDir string
 	var outputDir string
 	var sizeRaw string
+	var width int
+	var height int
 	var format string
 	var crop bool
 
 	fs.StringVar(&inputDir, "in", "", "input directory")
 	fs.StringVar(&outputDir, "out", "", "output directory")
 	fs.StringVar(&sizeRaw, "size", "", "thumbnail size (WxH)")
+	fs.IntVar(&width, "width", 0, "thumbnail width in pixels")
+	fs.IntVar(&height, "height", 0, "thumbnail height in pixels")
 	fs.StringVar(&format, "format", "png", "output format (png, jpg)")
 	fs.BoolVar(&crop, "crop", false, "center-crop before resizing")
 
@@ -34,11 +38,25 @@ func ParseArgs(args []string) (thumbforge.Config, error) {
 	if outputDir == "" {
 		return thumbforge.Config{}, fmt.Errorf("thumbforge: output directory required")
 	}
-	if sizeRaw == "" {
-		return thumbforge.Config{}, fmt.Errorf("thumbforge: size required")
+	if sizeRaw != "" && (width > 0 || height > 0) {
+		return thumbforge.Config{}, fmt.Errorf("thumbforge: size and width/height are mutually exclusive")
 	}
 
-	size, err := thumbforge.ParseSize(sizeRaw)
+	var size thumbforge.Size
+	if sizeRaw != "" {
+		parsed, err := thumbforge.ParseSize(sizeRaw)
+		if err != nil {
+			return thumbforge.Config{}, err
+		}
+		size = parsed
+	} else {
+		if width <= 0 || height <= 0 {
+			return thumbforge.Config{}, fmt.Errorf("thumbforge: size required")
+		}
+		size = thumbforge.Size{Width: width, Height: height}
+	}
+
+	normalizedFormat, err := thumbforge.NormalizeFormat(format)
 	if err != nil {
 		return thumbforge.Config{}, err
 	}
@@ -47,7 +65,7 @@ func ParseArgs(args []string) (thumbforge.Config, error) {
 		InputDir:  inputDir,
 		OutputDir: outputDir,
 		Size:      size,
-		Format:    format,
+		Format:    normalizedFormat,
 		Crop:      crop,
 	}, nil
 }
