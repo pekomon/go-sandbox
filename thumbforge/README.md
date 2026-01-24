@@ -1,6 +1,6 @@
 # ThumbForge
 
-ThumbForge is a CLI for batch thumbnail generation. It will resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline. This module is currently scaffolded; the CLI and tests will land in upcoming issues.
+ThumbForge is a CLI for batch thumbnail generation. It resizes PNG/JPEG inputs to fixed-size thumbnails and writes PNG or JPEG outputs offline.
 
 ---
 
@@ -12,7 +12,7 @@ Requirements: Go 1.25+, `make`, and a POSIX shell.
 # From repo root
 cd thumbforge
 make deps   # optional; runs go mod tidy
-make build  # produces ./bin/thumbforge once the CLI exists
+make build  # produces ./bin/thumbforge
 ```
 
 If you prefer raw Go commands:
@@ -26,11 +26,34 @@ go build -o bin/thumbforge ./cmd/thumbforge
 
 ## Usage
 
-ThumbForge is not implemented yet. Planned usage will look like:
+Generate thumbnails using a WxH size:
 
 ```bash
 ./bin/thumbforge --in ./photos --out ./thumbs --size 320x240
 ```
+
+Generate thumbnails using width/height flags:
+
+```bash
+./bin/thumbforge --in ./photos --out ./thumbs --width 320 --height 240 --format jpg
+```
+
+### Flags
+
+| Flag | Description | Default |
+| ---- | ----------- | ------- |
+| `--in` | Input directory (required). | _none_ |
+| `--out` | Output directory (required). | _none_ |
+| `--size` | Thumbnail size in `WxH` form. | _none_ |
+| `--width` | Thumbnail width in pixels (use with `--height`). | `0` |
+| `--height` | Thumbnail height in pixels (use with `--width`). | `0` |
+| `--format` | Output format (`png`, `jpg`, `jpeg`). | `png` |
+| `--crop` | Accepted for future use (currently no effect). | `false` |
+
+Notes:
+- Provide either `--size` or `--width` + `--height` (not both).
+- Output files keep the input base name with the output format extension.
+- Empty input directories return an error.
 
 ---
 
@@ -67,5 +90,5 @@ The GitHub Actions workflow mirrors these targets and uploads the `cover.out` ar
 ## Development notes
 
 - Modules stick to the Go standard library; image processing dependencies will be justified if needed.
-- The CLI will live in `cmd/thumbforge` and implementation packages under `internal/`.
+- The CLI lives in `cmd/thumbforge` and implementation packages under `internal/`.
 - Follow the repository conventions in [../agents.md](../agents.md) for branching strategy, PR templates, and release cadence.
