@@ -34,6 +34,19 @@ const (
 	RunDefeat
 )
 
+func (state RunState) String() string {
+	switch state {
+	case RunInProgress:
+		return "in-progress"
+	case RunVictory:
+		return "victory"
+	case RunDefeat:
+		return "defeat"
+	default:
+		return "unknown"
+	}
+}
+
 // Room represents a single encounter in a run.
 type Room struct {
 	Enemy   Combatant
