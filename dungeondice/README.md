@@ -1,6 +1,6 @@
 # DungeonDice
 
-DungeonDice is a planned CLI roguelike built around dice-driven combat rounds and class-based runs. The module is scaffolded and ready for tests and implementation.
+DungeonDice is a CLI roguelike simulation built around dice-driven combat rounds and class-based runs. The `run` command simulates a full run and prints a summary.
 
 ---
 
@@ -26,13 +26,45 @@ go build -o bin/dungeondice ./cmd/dungeondice
 
 ## Usage
 
-The CLI is under active development; usage examples will land once the run loop is implemented.
+Build the binary first, then run a simulated adventure:
+
+```bash
+cd dungeondice
+./bin/dungeondice run --class warrior --rooms 3 --seed 42
+```
+
+Try a different class or let the seed be random:
+
+```bash
+cd dungeondice
+./bin/dungeondice run --class rogue --rooms 4
+./bin/dungeondice run --class mystic --rooms 2 --seed 7
+```
+
+Available classes: `warrior`, `rogue`, `mystic`.
+
+Output looks like:
+
+```text
+Run summary
+Class: Warrior
+Seed: 42
+Rooms: 3
+Cleared: <n>
+State: <state>
+Final HP: <n>/<n>
+Rounds: <n>
+```
 
 ---
 
 ## Flags
 
-No CLI flags are defined yet.
+The `run` subcommand accepts:
+
+- `--class` (required): class name (`warrior`, `rogue`, `mystic`)
+- `--rooms` (optional): number of rooms in the run (default `3`, must be > 0)
+- `--seed` (optional): deterministic seed (`0` = random)
 
 ---
 
