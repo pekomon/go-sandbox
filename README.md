@@ -11,6 +11,7 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
 - **thumbforge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
 - **dungeondice** — Dice-driven CLI roguelike planned around combat rounds, classes, and run-based progress.
+- **triviagoblin** — CLI trivia game planned around short quiz rounds and deterministic shuffles.
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
