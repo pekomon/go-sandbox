@@ -22,9 +22,7 @@ func TestCLI_DryRunFlag_WiresThrough(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(root, "a.jpg"), []byte("x"), 0o644)
 	_ = os.WriteFile(filepath.Join(root, "b.txt"), []byte("x"), 0o644)
 
-	// Run from module root so `go run ./cmd/filesort` resolves correctly.
-	cmd := exec.Command("go", "run", "./cmd/filesort", "--dry-run", root)
-	cmd.Dir = filepath.Join("..") // from filesort/cmd/filesort to filesort/
+	cmd := exec.Command("go", "run", ".", "--dry-run", root)
 	var out, errb bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errb

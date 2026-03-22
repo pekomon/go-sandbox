@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	menuIndexList = iota
-	menuIndexAdd
+	menuIndexAdd = iota
+	menuIndexList
 	menuIndexDone
 	menuIndexRemove
 	menuIndexClear
@@ -66,5 +66,5 @@ func runMenuWithFakeUI(t *testing.T, fake ui.MenuUI) (string, string, int) {
 		menuUI = previous
 	}()
 
-	return runMenuHarness(t, []string{"menu"}, "")
+	return runMenuHarness(t, []string{"menu"}, "Example task\n1\n1\n")
 }
