@@ -5,9 +5,8 @@ Language: English only for code, comments, READMEs, commit messages.
 
 ## Repository shape
 - Multi-project Go repo; **each subproject is its own module** (has its own `go.mod`).
-- Current subprojects: `todo-cli/`, `guessr/`, `filesort/`, `snake/`.
-- Upcoming ideas tracked in the root README: MemeSweeper, ThumbForge, WeatherTape.
-- Root contains a minimal Makefile and top-level docs.
+- Current subprojects: `todo-cli/`, `guessr/`, `filesort/`, `snake/`, `memesweeper/`, `weathertape/`, `thumbforge/`, `dungeondice/`, `triviagoblin/`.
+- Root contains top-level docs plus a coordinating `Makefile` for list/build/test/cover/clean loops across subprojects.
 
 ## Go & toolchain
 Baseline: Go 1.25.

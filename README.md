@@ -3,15 +3,15 @@
 Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its own module for clean boundaries, reproducible builds, and focused CI.
 
 ## Subprojects
-- **todo-cli** — Local TODO manager CLI with JSON persistence, menu UI, and stdlib-only deps.
+- **todo-cli** — Local TODO manager CLI with JSON persistence and an interactive menu UI.
 - **guessr** — Number guessing CLI with hints, stats tracking, and deterministic seeds.
 - **filesort** — Directory sorter that buckets files by type with a dry-run preview.
-- **memesweeper** — Ebiten puzzler inspired by Minesweeper where tiles hide reaction memes; module scaffolded via issue #62 with gameplay to follow.
-- **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
-- **thumbforge** — CLI for batch thumbnail generation: resize/crop images, preserve EXIF-safe metadata, and export fixed-size assets offline.
-- **dungeondice** — Dice-driven CLI roguelike planned around combat rounds, classes, and run-based progress.
-- **triviagoblin** — CLI trivia game planned around short quiz rounds and deterministic shuffles.
+- **memesweeper** — Ebiten puzzler inspired by Minesweeper with meme tiles, flags, and difficulty presets.
+- **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
+- **thumbforge** — CLI for batch thumbnail generation: resize images offline and export fixed-size assets.
+- **dungeondice** — Dice-driven CLI roguelike simulator with classes, seeded runs, and combat summaries.
+- **triviagoblin** — Trivia quiz module with deterministic shuffling and a minimal CLI scaffold.
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
@@ -20,6 +20,8 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 
 ## Build & Test
 ```bash
+make list
+make build-all
 make test-all
 ```
 
