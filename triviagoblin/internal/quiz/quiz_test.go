@@ -82,6 +82,27 @@ func TestCheckAnswer_TrimAndCase(t *testing.T) {
 	}
 }
 
+func TestFilterByCategory(t *testing.T) {
+	questions := []quiz.Question{
+		{Prompt: "Capital of France?", Answer: "Paris", Category: "geo"},
+		{Prompt: "2+2", Answer: "4", Category: "math"},
+		{Prompt: "Capital of Spain?", Answer: "Madrid", Category: "GEO"},
+	}
+
+	all := quiz.FilterByCategory(questions, "")
+	if len(all) != 3 {
+		t.Fatalf("FilterByCategory(empty) length = %d, want 3", len(all))
+	}
+
+	filtered := quiz.FilterByCategory(questions, "geo")
+	if len(filtered) != 2 {
+		t.Fatalf("FilterByCategory(geo) length = %d, want 2", len(filtered))
+	}
+	if filtered[0].Prompt != "Capital of France?" || filtered[1].Prompt != "Capital of Spain?" {
+		t.Fatalf("FilterByCategory(geo) = %+v, want geo questions only", filtered)
+	}
+}
+
 func TestShuffleQuestions_Deterministic(t *testing.T) {
 	questions := []quiz.Question{
 		{Prompt: "A", Answer: "ok"},

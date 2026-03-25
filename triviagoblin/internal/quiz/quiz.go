@@ -57,6 +57,21 @@ func CheckAnswer(question Question, answer string) bool {
 	return strings.EqualFold(strings.TrimSpace(question.Answer), strings.TrimSpace(answer))
 }
 
+func FilterByCategory(questions []Question, category string) []Question {
+	category = strings.TrimSpace(category)
+	if category == "" {
+		return append([]Question(nil), questions...)
+	}
+
+	filtered := make([]Question, 0, len(questions))
+	for _, question := range questions {
+		if strings.EqualFold(question.Category, category) {
+			filtered = append(filtered, question)
+		}
+	}
+	return filtered
+}
+
 func ShuffleQuestions(questions []Question, seed int64) []Question {
 	shuffled := append([]Question(nil), questions...)
 	rng := rand.New(rand.NewSource(seed))
