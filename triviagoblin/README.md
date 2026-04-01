@@ -1,6 +1,6 @@
 # TriviaGoblin
 
-TriviaGoblin is a planned CLI quiz game built around short trivia rounds and deterministic shuffles. The module is scaffolded and ready for tests and implementation.
+TriviaGoblin is a CLI quiz game built around short trivia rounds and deterministic shuffles. It loads questions from a JSON file, optionally filters by category, shuffles deterministically with a seed, and prints a short run summary at the end.
 
 ---
 
@@ -26,13 +26,84 @@ go build -o bin/triviagoblin ./cmd/triviagoblin
 
 ## Usage
 
-The CLI is under active development; usage examples will land once the quiz loop is implemented.
+Show the command usage:
+
+```bash
+cd triviagoblin
+./bin/triviagoblin help
+```
+
+Run a quiz using all questions from a JSON file:
+
+```bash
+cd triviagoblin
+./bin/triviagoblin run --file ./questions.json
+```
+
+Run only two questions with a deterministic shuffle:
+
+```bash
+cd triviagoblin
+./bin/triviagoblin run --file ./questions.json --count 2 --seed 42
+```
+
+Filter to a single category:
+
+```bash
+cd triviagoblin
+./bin/triviagoblin run --file ./questions.json --category geo --seed 7
+```
+
+You can also run the CLI without building:
+
+```bash
+cd triviagoblin
+go run ./cmd/triviagoblin run --file ./questions.json --count 2 --seed 42
+```
+
+### Question file format
+
+TriviaGoblin expects a JSON array of objects with:
+
+```json
+[
+  {
+    "prompt": "Capital of France?",
+    "answer": "Paris",
+    "category": "geo"
+  },
+  {
+    "prompt": "2+2",
+    "answer": "4"
+  }
+]
+```
+
+Rules:
+- `prompt` is required
+- `answer` is required
+- `category` is optional
+- unknown JSON fields are rejected
+- empty files or filters that leave zero questions cause a runtime error
 
 ---
 
 ## Flags
 
-No CLI flags are defined yet.
+The `run` subcommand supports:
+
+| Flag | Default | Description |
+| ---- | ------- | ----------- |
+| `--file` | *(required)* | Path to a JSON question file. |
+| `--count` | `0` | Number of questions to ask. `0` means ask all loaded questions. |
+| `--seed` | `0` | Shuffle seed. Using the same seed gives the same question order. |
+| `--category` | *(empty)* | Optional category filter, matched case-insensitively. |
+
+Usage summary:
+
+```text
+triviagoblin run --file <path> [--count N] [--seed N] [--category name]
+```
 
 ---
 
@@ -46,9 +117,9 @@ No environment variables are defined yet.
 
 | Code | Meaning |
 | ---- | ------- |
-| `0` | Success. |
-| `1` | Runtime failure. |
-| `2` | Invalid CLI usage. |
+| `0` | Success, including `help` output and completed quiz runs. |
+| `1` | Runtime failure, such as file I/O errors, invalid JSON input, or no questions matching the requested category. |
+| `2` | Invalid CLI usage, such as unknown commands, invalid flags, missing `--file`, or `--count < 0`. |
 
 Normal output will be printed to stdout; all error messages go to stderr.
 
