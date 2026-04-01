@@ -2,6 +2,8 @@
 
 TriviaGoblin is a CLI quiz game built around short trivia rounds and deterministic shuffles. It loads questions from a JSON file, optionally filters by category, shuffles deterministically with a seed, and prints a short run summary at the end.
 
+A ready-to-run sample question set is included at `triviagoblin/questions.sample.json`.
+
 ---
 
 ## Installation
@@ -37,28 +39,28 @@ Run a quiz using all questions from a JSON file:
 
 ```bash
 cd triviagoblin
-./bin/triviagoblin run --file ./questions.json
+./bin/triviagoblin run --file ./questions.sample.json
 ```
 
 Run only two questions with a deterministic shuffle:
 
 ```bash
 cd triviagoblin
-./bin/triviagoblin run --file ./questions.json --count 2 --seed 42
+./bin/triviagoblin run --file ./questions.sample.json --count 2 --seed 42
 ```
 
 Filter to a single category:
 
 ```bash
 cd triviagoblin
-./bin/triviagoblin run --file ./questions.json --category geo --seed 7
+./bin/triviagoblin run --file ./questions.sample.json --category geo --seed 7
 ```
 
 You can also run the CLI without building:
 
 ```bash
 cd triviagoblin
-go run ./cmd/triviagoblin run --file ./questions.json --count 2 --seed 42
+go run ./cmd/triviagoblin run --file ./questions.sample.json --count 2 --seed 42
 ```
 
 ### Question file format
@@ -85,6 +87,7 @@ Rules:
 - `category` is optional
 - unknown JSON fields are rejected
 - empty files or filters that leave zero questions cause a runtime error
+- `questions.sample.json` is a valid example file you can use immediately
 
 ---
 
