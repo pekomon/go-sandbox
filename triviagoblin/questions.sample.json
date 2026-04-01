@@ -1,0 +1,62 @@
+[
+  {
+    "prompt": "Capital of France?",
+    "answer": "Paris",
+    "category": "geo"
+  },
+  {
+    "prompt": "Capital of Spain?",
+    "answer": "Madrid",
+    "category": "geo"
+  },
+  {
+    "prompt": "Capital of Japan?",
+    "answer": "Tokyo",
+    "category": "geo"
+  },
+  {
+    "prompt": "2 + 2",
+    "answer": "4",
+    "category": "math"
+  },
+  {
+    "prompt": "3 * 7",
+    "answer": "21",
+    "category": "math"
+  },
+  {
+    "prompt": "Square root of 81",
+    "answer": "9",
+    "category": "math"
+  },
+  {
+    "prompt": "Who wrote Hamlet?",
+    "answer": "William Shakespeare",
+    "category": "literature"
+  },
+  {
+    "prompt": "Who wrote 1984?",
+    "answer": "George Orwell",
+    "category": "literature"
+  },
+  {
+    "prompt": "Chemical symbol for water",
+    "answer": "H2O",
+    "category": "science"
+  },
+  {
+    "prompt": "Planet known as the Red Planet",
+    "answer": "Mars",
+    "category": "science"
+  },
+  {
+    "prompt": "Fastest land animal",
+    "answer": "Cheetah",
+    "category": "science"
+  },
+  {
+    "prompt": "Programming language this repo primarily uses",
+    "answer": "Go",
+    "category": "tech"
+  }
+]
