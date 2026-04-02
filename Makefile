@@ -1,6 +1,6 @@
 SUBPROJECTS := todo-cli guessr filesort snake memesweeper weathertape thumbforge dungeondice triviagoblin
 
-.PHONY: deps-all build-all test-all cover-all clean-all list
+.PHONY: deps-all build-all test-all cover-all clean-all clean-local-binaries list
 
 deps-all:
 	@set -e; \
@@ -35,6 +35,14 @@ clean-all:
 	for p in $(SUBPROJECTS); do \
 		echo "===> $$p: make clean"; \
 		$(MAKE) -C $$p clean; \
+	done
+	@$(MAKE) clean-local-binaries
+
+clean-local-binaries:
+	@set -e; \
+	for p in $(SUBPROJECTS); do \
+		echo "===> removing $$p/$${p##*/}"; \
+		rm -f "$$p/$${p##*/}"; \
 	done
 
 list:

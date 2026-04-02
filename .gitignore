@@ -2,6 +2,15 @@
 /bin/
 /build/
 /dist/
+/todo-cli/todo-cli
+/guessr/guessr
+/filesort/filesort
+/snake/snake
+/memesweeper/memesweeper
+/weathertape/weathertape
+/thumbforge/thumbforge
+/dungeondice/dungeondice
+/triviagoblin/triviagoblin
 
 # Go
 *.exe
