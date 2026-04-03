@@ -1,4 +1,4 @@
-SUBPROJECTS := todo-cli guessr filesort snake memesweeper weathertape thumbforge dungeondice triviagoblin
+SUBPROJECTS := todo-cli guessr filesort snake brickbreaker memesweeper weathertape thumbforge dungeondice triviagoblin
 
 .PHONY: deps-all build-all test-all cover-all clean-all clean-local-binaries list
 
