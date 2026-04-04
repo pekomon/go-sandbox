@@ -89,7 +89,7 @@ func TestStepWallBounceReflectsVelocity(t *testing.T) {
 	st := newState(t)
 	st.Phase = game.PhaseRunning
 	st.Ball.X = st.Ball.Radius + 1
-	st.Ball.Y = 120
+	st.Ball.Y = st.Ball.Radius + 1
 	st.Ball.VX = -4
 	st.Ball.VY = -3
 
