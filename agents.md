@@ -18,7 +18,11 @@ Prefer not to use toolchain directives in modules to avoid redundant downloads i
 ## Workflow rules
 - **One logical unit per PR**. Keep PRs focused and small.
 - Prefer **tests-first**: a failing tests PR, then a feature PR that makes tests pass.
-- Create and use GitHub issues; in PR body include “**Closes #<n>.**” to auto-close.
+- Use **one GitHub issue per app/subproject effort**. Keep that issue high-level: summary, v1 scope, non-goals, and major milestones.
+- Track detailed sequencing and temporary implementation notes in the local `.codex-plan.md` file. Treat it as a local planning aid; **do not commit it**.
+- When multiple PRs contribute to the same app issue:
+  - intermediate PRs should use `Refs #<n>`
+  - only the final PR that completes the planned app slice should use `Closes #<n>`
 - Branch naming: `feat/...`, `test/...`, `fix/...`, `docs/...`, `infra/...`, `ci/...`.
 - Commit style:
   - tests-only PR: `test(<area>): ...`
@@ -63,13 +67,15 @@ Prefer not to use toolchain directives in modules to avoid redundant downloads i
 1) Create folder with module files: `README.md`, `.gitignore`, `Makefile`, `go.mod`, `internal/.gitkeep`, `cmd/<name>/.gitkeep`.
 2) Update the root README subprojects list (and remove the project from the “Upcoming subprojects” section if present).
 3) Add a dedicated workflow file for the new subproject.
-4) Open issues: tests PR, feature PR, docs PR (in that order).
-5) Keep stdlib-only unless otherwise justified.
+4) Open one GitHub issue for the app with summary, v1 scope, non-goals, and planned milestones.
+5) Break the work into focused PRs as needed, using tests-first sequencing where it helps.
+6) Use the local `.codex-plan.md` file for detailed task breakdown, PR ordering, and active-session notes. Do not commit it.
+7) Keep stdlib-only unless otherwise justified.
 
 ## Authoring prompts for Codex (guidelines)
-- Always include: branch name, PR title, PR body (with **Closes #...** when applicable), exact file paths and **full file contents** to write.
+- Always include: branch name, PR title, PR body (with `Refs #...` or `Closes #...` as appropriate), exact file paths and **full file contents** to write.
 - When updating an existing PR: explicitly say **do NOT create a new branch/PR**, and specify which file(s) to replace.
 - Keep prompts deterministic: avoid vague wording (“update as needed”).
-- Keep each PR focused on one task; split follow-ups into new issues.
+- Keep each PR focused on one task; split follow-ups into later PRs under the same app issue when possible.
 
 ---
