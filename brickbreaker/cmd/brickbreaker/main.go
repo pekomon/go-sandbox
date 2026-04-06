@@ -16,9 +16,13 @@ import (
 
 var (
 	backgroundColor = color.RGBA{0x10, 0x18, 0x20, 0xff}
-	brickColor      = color.RGBA{0xf1, 0xb8, 0x2d, 0xff}
 	paddleColor     = color.RGBA{0x58, 0xb7, 0xe0, 0xff}
 	ballColor       = color.RGBA{0xf7, 0xf3, 0xe8, 0xff}
+	levelColors     = []color.RGBA{
+		{0xf1, 0xb8, 0x2d, 0xff},
+		{0xe8, 0x77, 0x4d, 0xff},
+		{0xb7, 0x63, 0xd8, 0xff},
+	}
 )
 
 type app struct {
@@ -63,6 +67,7 @@ func (a *app) Update() error {
 func (a *app) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
 
+	brickColor := levelColors[(a.state.Level-1)%len(levelColors)]
 	for _, brick := range a.state.Bricks {
 		if !brick.Alive {
 			continue
@@ -73,19 +78,21 @@ func (a *app) Draw(screen *ebiten.Image) {
 	ebitenutil.DrawRect(screen, a.state.Paddle.X, a.state.Paddle.Y, a.state.Paddle.Width, a.state.Paddle.Height, paddleColor)
 	ebitenutil.DrawRect(screen, a.state.Ball.X-a.state.Ball.Radius, a.state.Ball.Y-a.state.Ball.Radius, a.state.Ball.Radius*2, a.state.Ball.Radius*2, ballColor)
 
-	msg := fmt.Sprintf("Lives: %d  Score: %d", a.state.Lives, a.state.Score)
+	header := fmt.Sprintf("Level %d/%d  Lives %d  Score %d", a.state.Level, a.state.TotalLevels, a.state.Lives, a.state.Score)
+	status := ""
 	switch a.state.Phase {
 	case game.PhaseServe:
-		msg += "   Left/Right or A/D to move   Space to launch   Esc to quit"
+		status = fmt.Sprintf("Ready on level %d. Left/Right or A/D to move, Space to launch, Esc to quit", a.state.Level)
 	case game.PhaseRunning:
 		speed := math.Hypot(a.state.Ball.VX, a.state.Ball.VY)
-		msg += fmt.Sprintf("   Ball speed: %.1f   Esc to quit", speed)
+		status = fmt.Sprintf("Ball speed %.1f   Break all bricks to advance   Esc to quit", speed)
 	case game.PhaseWon:
-		msg += "   YOU WIN   Press R, Space, or Enter to restart"
+		status = fmt.Sprintf("You cleared all %d levels. Press R, Space, or Enter to restart", a.state.TotalLevels)
 	case game.PhaseGameOver:
-		msg += "   GAME OVER   Press R, Space, or Enter to restart"
+		status = "Game over. Press R, Space, or Enter to restart"
 	}
-	ebitenutil.DebugPrintAt(screen, msg, 12, 12)
+	ebitenutil.DebugPrintAt(screen, header, 12, 12)
+	ebitenutil.DebugPrintAt(screen, status, 12, 30)
 }
 
 func (a *app) Layout(int, int) (int, int) {

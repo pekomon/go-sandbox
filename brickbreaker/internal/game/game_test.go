@@ -1,6 +1,7 @@
 package game_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/pekomon/go-sandbox/brickbreaker/internal/game"
@@ -10,6 +11,16 @@ func newState(t *testing.T) *game.State {
 	t.Helper()
 
 	st, err := game.New(game.DefaultConfig())
+	if err != nil {
+		t.Fatalf("game.New: %v", err)
+	}
+	return st
+}
+
+func newStateWithConfig(t *testing.T, cfg game.Config) *game.State {
+	t.Helper()
+
+	st, err := game.New(cfg)
 	if err != nil {
 		t.Fatalf("game.New: %v", err)
 	}
@@ -27,6 +38,12 @@ func TestNewStartsInServeState(t *testing.T) {
 	if st.Lives != 3 {
 		t.Fatalf("lives = %d, want 3", st.Lives)
 	}
+	if st.Level != 1 {
+		t.Fatalf("level = %d, want 1", st.Level)
+	}
+	if st.TotalLevels < 3 {
+		t.Fatalf("total levels = %d, want at least 3", st.TotalLevels)
+	}
 	if st.RemainingBricks() == 0 {
 		t.Fatalf("expected a populated brick field at start")
 	}
@@ -34,6 +51,95 @@ func TestNewStartsInServeState(t *testing.T) {
 	wantBallY := st.Paddle.Y - st.Ball.Radius - 1
 	if st.Ball.X != wantBallX || st.Ball.Y != wantBallY {
 		t.Fatalf("ball start = (%.1f, %.1f), want (%.1f, %.1f)", st.Ball.X, st.Ball.Y, wantBallX, wantBallY)
+	}
+}
+
+func TestClearingIntermediateLevelAdvancesToNextServe(t *testing.T) {
+	t.Parallel()
+
+	cfg := game.DefaultConfig()
+	cfg.Levels = [][]game.Brick{
+		{{
+			X:      160,
+			Y:      80,
+			Width:  60,
+			Height: 18,
+			Alive:  true,
+		}},
+		{
+			{X: 100, Y: 60, Width: 60, Height: 18, Alive: true},
+			{X: 200, Y: 60, Width: 60, Height: 18, Alive: true},
+		},
+	}
+	cfg.Bricks = nil
+
+	st, err := game.New(cfg)
+	if err != nil {
+		t.Fatalf("game.New: %v", err)
+	}
+	initialSpeed := st.Ball.Speed
+
+	st.Phase = game.PhaseRunning
+	st.Ball.X = st.Bricks[0].X + st.Bricks[0].Width/2
+	st.Ball.Y = st.Bricks[0].Y + st.Bricks[0].Height + st.Ball.Radius + 1
+	st.Ball.VX = 0
+	st.Ball.VY = -4
+
+	if err := st.Step(game.Input{}); err != nil {
+		t.Fatalf("Step level clear: %v", err)
+	}
+	if st.Phase != game.PhaseServe {
+		t.Fatalf("phase = %v, want %v after progression", st.Phase, game.PhaseServe)
+	}
+	if st.Level != 2 {
+		t.Fatalf("level = %d, want 2", st.Level)
+	}
+	if st.TotalLevels != 2 {
+		t.Fatalf("total levels = %d, want 2", st.TotalLevels)
+	}
+	if st.RemainingBricks() != 2 {
+		t.Fatalf("remaining bricks = %d, want 2 from next layout", st.RemainingBricks())
+	}
+	if st.Ball.Speed <= initialSpeed {
+		t.Fatalf("ball speed = %.2f, want > %.2f on next level", st.Ball.Speed, initialSpeed)
+	}
+}
+
+func TestLaunchUsesCurrentLevelSpeed(t *testing.T) {
+	t.Parallel()
+
+	cfg := game.DefaultConfig()
+	cfg.Levels = [][]game.Brick{
+		{{X: 160, Y: 80, Width: 60, Height: 18, Alive: true}},
+		{{X: 160, Y: 80, Width: 60, Height: 18, Alive: true}},
+	}
+	cfg.Bricks = nil
+
+	st, err := game.New(cfg)
+	if err != nil {
+		t.Fatalf("game.New: %v", err)
+	}
+
+	st.Phase = game.PhaseRunning
+	st.Ball.X = st.Bricks[0].X + st.Bricks[0].Width/2
+	st.Ball.Y = st.Bricks[0].Y + st.Bricks[0].Height + st.Ball.Radius + 1
+	st.Ball.VX = 0
+	st.Ball.VY = -4
+
+	if err := st.Step(game.Input{}); err != nil {
+		t.Fatalf("Step level clear: %v", err)
+	}
+	if st.Level != 2 {
+		t.Fatalf("level = %d, want 2", st.Level)
+	}
+
+	expectedSpeed := st.Ball.Speed
+	if err := st.Step(game.Input{Launch: true}); err != nil {
+		t.Fatalf("Step launch after progression: %v", err)
+	}
+	gotSpeed := math.Hypot(st.Ball.VX, st.Ball.VY)
+	if math.Abs(gotSpeed-expectedSpeed) > 0.001 {
+		t.Fatalf("launch speed = %.3f, want %.3f", gotSpeed, expectedSpeed)
 	}
 }
 
@@ -125,14 +231,16 @@ func TestStepPaddleBounceReflectsBallUpward(t *testing.T) {
 func TestStepBrickCollisionClearsBrickAndScores(t *testing.T) {
 	t.Parallel()
 
-	st := newState(t)
-	st.Bricks = []game.Brick{{
+	cfg := game.DefaultConfig()
+	cfg.Levels = nil
+	cfg.Bricks = []game.Brick{{
 		X:      160,
 		Y:      80,
 		Width:  60,
 		Height: 18,
 		Alive:  true,
 	}}
+	st := newStateWithConfig(t, cfg)
 	st.Phase = game.PhaseRunning
 	st.Ball.X = st.Bricks[0].X + st.Bricks[0].Width/2
 	st.Ball.Y = st.Bricks[0].Y + st.Bricks[0].Height + st.Ball.Radius + 1
@@ -181,14 +289,16 @@ func TestStepBottomOutConsumesLifeAndResetsServe(t *testing.T) {
 func TestStepClearingLastBrickWinsRound(t *testing.T) {
 	t.Parallel()
 
-	st := newState(t)
-	st.Bricks = []game.Brick{{
+	cfg := game.DefaultConfig()
+	cfg.Levels = nil
+	cfg.Bricks = []game.Brick{{
 		X:      200,
 		Y:      80,
 		Width:  60,
 		Height: 18,
 		Alive:  true,
 	}}
+	st := newStateWithConfig(t, cfg)
 	st.Phase = game.PhaseRunning
 	st.Ball.X = st.Bricks[0].X + st.Bricks[0].Width/2
 	st.Ball.Y = st.Bricks[0].Y + st.Bricks[0].Height + st.Ball.Radius + 1
