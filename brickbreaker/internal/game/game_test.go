@@ -228,6 +228,29 @@ func TestStepPaddleBounceReflectsBallUpward(t *testing.T) {
 	}
 }
 
+func TestStepRunningMovementMovesPaddle(t *testing.T) {
+	t.Parallel()
+
+	st := newState(t)
+	st.Phase = game.PhaseRunning
+	startPaddleX := st.Paddle.X
+
+	if err := st.Step(game.Input{MoveRight: true}); err != nil {
+		t.Fatalf("Step running move: %v", err)
+	}
+	if st.Paddle.X <= startPaddleX {
+		t.Fatalf("paddle X = %.1f, want > %.1f while running", st.Paddle.X, startPaddleX)
+	}
+
+	st.Paddle.X = st.Width - st.Paddle.Width
+	if err := st.Step(game.Input{MoveRight: true}); err != nil {
+		t.Fatalf("Step running boundary: %v", err)
+	}
+	if st.Paddle.X != st.Width-st.Paddle.Width {
+		t.Fatalf("paddle escaped right wall while running: got %.1f", st.Paddle.X)
+	}
+}
+
 func TestStepBrickCollisionClearsBrickAndScores(t *testing.T) {
 	t.Parallel()
 

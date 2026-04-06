@@ -141,6 +141,8 @@ func (s *State) Step(in Input) error {
 		if s.Phase == PhaseServe {
 			return nil
 		}
+	case PhaseRunning:
+		s.movePaddle(in)
 	case PhaseWon, PhaseGameOver:
 		return nil
 	}
