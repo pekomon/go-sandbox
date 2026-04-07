@@ -52,17 +52,25 @@ type Config struct {
 	Ball   Ball
 	Lives  int
 	Bricks []Brick
+	Levels [][]Brick
 }
 
 type State struct {
-	Width  float64
-	Height float64
-	Paddle Paddle
-	Ball   Ball
-	Bricks []Brick
-	Lives  int
-	Score  int
-	Phase  Phase
+	Width       float64
+	Height      float64
+	Paddle      Paddle
+	Ball        Ball
+	Bricks      []Brick
+	Lives       int
+	Score       int
+	Phase       Phase
+	Level       int
+	TotalLevels int
+
+	initialPaddle  Paddle
+	levelLayouts   [][]Brick
+	baseBallSpeed  float64
+	currentLevelID int
 }
 
 func DefaultConfig() Config {
@@ -81,7 +89,7 @@ func DefaultConfig() Config {
 			Speed:  6,
 		},
 		Lives:  3,
-		Bricks: defaultBricks(),
+		Levels: defaultLevels(),
 	}
 }
 
@@ -98,18 +106,27 @@ func New(cfg Config) (*State, error) {
 	if cfg.Lives <= 0 {
 		return nil, errors.New("invalid lives")
 	}
-	bricks := make([]Brick, len(cfg.Bricks))
-	copy(bricks, cfg.Bricks)
-	st := &State{
-		Width:  cfg.Width,
-		Height: cfg.Height,
-		Paddle: cfg.Paddle,
-		Ball:   cfg.Ball,
-		Bricks: bricks,
-		Lives:  cfg.Lives,
-		Phase:  PhaseServe,
+	layouts := cloneLevels(cfg.Levels)
+	if len(layouts) == 0 {
+		if len(cfg.Bricks) == 0 {
+			cfg.Bricks = defaultBricks()
+		}
+		layouts = [][]Brick{cloneBricks(cfg.Bricks)}
 	}
-	st.attachBallToPaddle()
+	st := &State{
+		Width:         cfg.Width,
+		Height:        cfg.Height,
+		Paddle:        cfg.Paddle,
+		Ball:          cfg.Ball,
+		Lives:         cfg.Lives,
+		Phase:         PhaseServe,
+		Level:         1,
+		TotalLevels:   len(layouts),
+		initialPaddle: cfg.Paddle,
+		levelLayouts:  layouts,
+		baseBallSpeed: cfg.Ball.Speed,
+	}
+	st.loadLevel(0)
 	return st, nil
 }
 
@@ -124,6 +141,8 @@ func (s *State) Step(in Input) error {
 		if s.Phase == PhaseServe {
 			return nil
 		}
+	case PhaseRunning:
+		s.movePaddle(in)
 	case PhaseWon, PhaseGameOver:
 		return nil
 	}
@@ -172,8 +191,7 @@ func (s *State) stepServe(in Input) {
 	}
 
 	s.Phase = PhaseRunning
-	s.Ball.VX = s.Ball.Speed * 0.6
-	s.Ball.VY = -s.Ball.Speed * 0.8
+	s.launchBall()
 }
 
 func (s *State) movePaddle(in Input) {
@@ -242,8 +260,7 @@ func (s *State) bouncePaddle(_, prevY float64) {
 	}
 
 	s.Ball.Y = paddleTop - s.Ball.Radius
-	s.Ball.VY = -math.Abs(s.Ball.Speed)
-
+	speed := s.currentBallSpeed()
 	relative := (s.Ball.X - (s.Paddle.X + s.Paddle.Width/2)) / (s.Paddle.Width / 2)
 	if relative < -1 {
 		relative = -1
@@ -251,14 +268,16 @@ func (s *State) bouncePaddle(_, prevY float64) {
 	if relative > 1 {
 		relative = 1
 	}
-	s.Ball.VX = relative * s.Ball.Speed
-	if math.Abs(s.Ball.VX) < s.Ball.Speed*0.2 {
+	if math.Abs(relative) < 0.2 {
 		if relative < 0 {
-			s.Ball.VX = -s.Ball.Speed * 0.2
+			relative = -0.2
 		} else {
-			s.Ball.VX = s.Ball.Speed * 0.2
+			relative = 0.2
 		}
 	}
+	angle := relative * (math.Pi / 3)
+	s.Ball.VX = speed * math.Sin(angle)
+	s.Ball.VY = -speed * math.Cos(angle)
 }
 
 func (s *State) hitBrick(prevX, prevY float64) {
@@ -276,10 +295,50 @@ func (s *State) hitBrick(prevX, prevY float64) {
 		s.reflectFromBrick(*brick, prevX, prevY)
 
 		if s.RemainingBricks() == 0 {
-			s.Phase = PhaseWon
+			s.advanceLevel()
 		}
 		return
 	}
+}
+
+func (s *State) loadLevel(levelIndex int) {
+	s.currentLevelID = levelIndex
+	s.Level = levelIndex + 1
+	s.Paddle = s.initialPaddle
+	s.Ball.Speed = s.levelBallSpeed(levelIndex)
+	s.Bricks = cloneBricks(s.levelLayouts[levelIndex])
+	s.Phase = PhaseServe
+	s.attachBallToPaddle()
+}
+
+func (s *State) levelBallSpeed(levelIndex int) float64 {
+	return s.baseBallSpeed + float64(levelIndex)*0.9
+}
+
+func (s *State) launchBall() {
+	speed := s.currentBallSpeed()
+	s.Ball.VX = speed * 0.6
+	s.Ball.VY = -math.Sqrt(speed*speed - s.Ball.VX*s.Ball.VX)
+}
+
+func (s *State) currentBallSpeed() float64 {
+	if s.Ball.Speed > 0 {
+		return s.Ball.Speed
+	}
+	speed := math.Hypot(s.Ball.VX, s.Ball.VY)
+	if speed == 0 {
+		return 1
+	}
+	return speed
+}
+
+func (s *State) advanceLevel() {
+	next := s.currentLevelID + 1
+	if next >= s.TotalLevels {
+		s.Phase = PhaseWon
+		return
+	}
+	s.loadLevel(next)
 }
 
 func (s *State) reflectFromBrick(brick Brick, prevX, prevY float64) {
@@ -353,6 +412,23 @@ func ballIntersectsBrick(ball Ball, brick Brick) bool {
 	return true
 }
 
+func cloneLevels(levels [][]Brick) [][]Brick {
+	if len(levels) == 0 {
+		return nil
+	}
+	cloned := make([][]Brick, len(levels))
+	for i := range levels {
+		cloned[i] = cloneBricks(levels[i])
+	}
+	return cloned
+}
+
+func cloneBricks(bricks []Brick) []Brick {
+	cloned := make([]Brick, len(bricks))
+	copy(cloned, bricks)
+	return cloned
+}
+
 func defaultBricks() []Brick {
 	bricks := make([]Brick, 0, 40)
 	for row := 0; row < 5; row++ {
@@ -362,6 +438,38 @@ func defaultBricks() []Brick {
 				Y:      52 + float64(row)*26,
 				Width:  60,
 				Height: 18,
+				Alive:  true,
+			})
+		}
+	}
+	return bricks
+}
+
+func defaultLevels() [][]Brick {
+	return [][]Brick{
+		defaultBricks(),
+		buildLevelLayout([]int{6, 7, 6, 7, 6}, 89, 52, 62, 24, 56, 16, true),
+		buildLevelLayout([]int{4, 6, 8, 6, 4, 2}, 56, 48, 66, 22, 60, 16, false),
+	}
+}
+
+func buildLevelLayout(rowWidths []int, startX, startY, stepX, stepY, brickWidth, brickHeight float64, stagger bool) []Brick {
+	total := 0
+	for _, count := range rowWidths {
+		total += count
+	}
+	bricks := make([]Brick, 0, total)
+	for row, count := range rowWidths {
+		rowStartX := startX
+		if stagger && row%2 == 1 {
+			rowStartX += stepX / 2
+		}
+		for col := 0; col < count; col++ {
+			bricks = append(bricks, Brick{
+				X:      rowStartX + float64(col)*stepX,
+				Y:      startY + float64(row)*stepY,
+				Width:  brickWidth,
+				Height: brickHeight,
 				Alive:  true,
 			})
 		}
