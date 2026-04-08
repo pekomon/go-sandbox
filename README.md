@@ -7,12 +7,12 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **guessr** — Number guessing CLI with hints, stats tracking, and deterministic seeds.
 - **filesort** — Directory sorter that buckets files by type with a dry-run preview.
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
-- **brickbreaker** — Arkanoid-style Ebiten game scaffold with deterministic gameplay tests and a placeholder window.
+- **brickbreaker** — Arkanoid-style Ebiten game with deterministic gameplay tests, three built-in levels, and a level-by-level speed ramp.
 - **memesweeper** — Ebiten puzzler inspired by Minesweeper with meme tiles, flags, and difficulty presets.
 - **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
 - **thumbforge** — CLI for batch thumbnail generation: resize images offline and export fixed-size assets.
 - **dungeondice** — Dice-driven CLI roguelike simulator with classes, seeded runs, and combat summaries.
-- **triviagoblin** — Trivia quiz module with deterministic shuffling and a minimal CLI scaffold.
+- **triviagoblin** — Trivia quiz CLI with deterministic shuffling, category filters, and a ready-to-run sample question set.
 
 ## Principles
 - Standard library first. Any external dependency must be justified in PR notes.
