@@ -1,8 +1,6 @@
 # Speedpads
 
-Speedpads is a Speden Spelit inspired memory-speed game scaffold built with Ebiten. This first PR intentionally lands the module structure, root wiring, CI, and deterministic state-machine tests before the real game loop is implemented.
-
-The current binary opens a placeholder window so the module builds cleanly while the core show-phase and input-phase behavior is still being driven by red tests.
+Speedpads is a Speden Spelit inspired memory-speed game built with Ebiten. The current implementation includes the core show/input loop, deterministic sequence generation, round-to-round speed ramping, and watchdog timeouts for stalled input.
 
 ## Installation
 
@@ -22,7 +20,7 @@ go build -o bin/speedpads ./cmd/speedpads
 
 ## Usage
 
-Run the current scaffold:
+Run the game:
 
 ```bash
 cd speedpads
@@ -36,7 +34,7 @@ cd speedpads
 go run ./cmd/speedpads
 ```
 
-Planned controls:
+Controls:
 - `Space` to start
 - `D`, `F`, `J`, `K` for the four pads
 - `R` to restart after game over
@@ -44,7 +42,7 @@ Planned controls:
 
 ## Testing & Coverage
 
-This module is intentionally tests-first at the moment. The gameplay tests define the expected deterministic sequence, show phase, input phase, watchdog timeout, and round progression behavior.
+The gameplay tests cover the deterministic sequence, show phase, input phase, watchdog timeout, and round progression behavior.
 
 ```bash
 cd speedpads
