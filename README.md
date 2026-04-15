@@ -8,6 +8,7 @@ Multi-project Go repository (Go baseline: 1.25). Each subproject lives in its ow
 - **filesort** — Directory sorter that buckets files by type with a dry-run preview.
 - **snake** — Ebiten-based arcade snake clone with instant restarts and score overlay.
 - **brickbreaker** — Arkanoid-style Ebiten game with deterministic gameplay tests, three built-in levels, and a level-by-level speed ramp.
+- **speedpads** — Speden Spelit inspired memory-speed game scaffold with deterministic sequence-state tests and an Ebiten placeholder shell.
 - **memesweeper** — Ebiten puzzler inspired by Minesweeper with meme tiles, flags, and difficulty presets.
 - **weathertape** — Terminal weather dashboard that renders ASCII “tape” forecasts from JSON data sources.
 - **thumbforge** — CLI for batch thumbnail generation: resize images offline and export fixed-size assets.
