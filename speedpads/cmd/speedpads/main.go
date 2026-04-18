@@ -76,12 +76,13 @@ func (a *app) Draw(screen *ebiten.Image) {
 	padWidth := 120.0
 	padHeight := 120.0
 	gap := 28.0
-	startX := (a.state.Width - (padWidth*2 + gap)) / 2
-	startY := 92.0
+	rowWidth := float64(a.state.PadCount)*padWidth + float64(a.state.PadCount-1)*gap
+	startX := (a.state.Width - rowWidth) / 2
+	startY := 120.0
 
 	for i := 0; i < a.state.PadCount; i++ {
-		x := startX + float64(i%2)*(padWidth+gap)
-		y := startY + float64(i/2)*(padHeight+gap)
+		x := startX + float64(i)*(padWidth+gap)
+		y := startY
 		padColor := dimPadColors[i]
 		if a.state.LitPad == i {
 			padColor = padColors[i]
