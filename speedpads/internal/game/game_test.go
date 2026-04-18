@@ -103,6 +103,32 @@ func TestShowPhaseTransitionsToInput(t *testing.T) {
 	}
 }
 
+func TestInputOnShowPhaseBoundaryIsAccepted(t *testing.T) {
+	t.Parallel()
+
+	st := newState(t)
+	if err := st.Step(game.Input{Start: true}); err != nil {
+		t.Fatalf("Step start: %v", err)
+	}
+
+	stepMany(t, st, 5)
+
+	firstPad := st.Sequence[0]
+	if err := st.Step(game.Input{Pad: firstPad, Press: true}); err != nil {
+		t.Fatalf("Step boundary press: %v", err)
+	}
+
+	if st.Phase != game.PhaseInput {
+		t.Fatalf("phase = %v, want %v after boundary press", st.Phase, game.PhaseInput)
+	}
+	if st.InputIndex != 1 {
+		t.Fatalf("input index = %d, want 1 after boundary press", st.InputIndex)
+	}
+	if st.Score != 1 {
+		t.Fatalf("score = %d, want 1 after boundary press", st.Score)
+	}
+}
+
 func TestCorrectSequenceAdvancesRoundAndShortensTiming(t *testing.T) {
 	t.Parallel()
 

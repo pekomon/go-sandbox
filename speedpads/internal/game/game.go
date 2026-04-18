@@ -112,6 +112,9 @@ func (s *State) Step(in Input) error {
 		}
 	case PhaseShowing:
 		s.advanceShowPhase()
+		if s.Phase == PhaseInput && in.Press {
+			s.advanceInputPhase(in)
+		}
 	case PhaseInput:
 		s.advanceInputPhase(in)
 	case PhaseGameOver:
