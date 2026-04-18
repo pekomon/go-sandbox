@@ -115,10 +115,11 @@ func (s *State) Step(in Input) error {
 			return s.beginRound(true)
 		}
 	case PhaseShowing:
-		s.captureBufferedPress(in)
 		s.advanceShowPhase()
 		if s.Phase == PhaseInput {
-			s.advanceInputPhase(s.takeBufferedOrCurrentInput(in))
+			if in.Press {
+				s.advanceInputPhase(in)
+			}
 		}
 	case PhaseInput:
 		s.advanceInputPhase(in)
@@ -180,27 +181,6 @@ func (s *State) beginRound(fresh bool) error {
 	s.BufferedPad = -1
 	s.LitPad = s.Sequence[0]
 	return nil
-}
-
-func (s *State) captureBufferedPress(in Input) {
-	if !in.Press {
-		return
-	}
-	s.bufferedPress = true
-	s.BufferedPad = in.Pad
-}
-
-func (s *State) takeBufferedOrCurrentInput(in Input) Input {
-	if s.bufferedPress {
-		buffered := Input{
-			Pad:   s.BufferedPad,
-			Press: true,
-		}
-		s.bufferedPress = false
-		s.BufferedPad = -1
-		return buffered
-	}
-	return in
 }
 
 func (s *State) nextPad() int {
