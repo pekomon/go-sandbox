@@ -129,6 +129,73 @@ func TestInputOnShowPhaseBoundaryIsAccepted(t *testing.T) {
 	}
 }
 
+func TestEarlyInputDuringShowPhaseIsBuffered(t *testing.T) {
+	t.Parallel()
+
+	st := newState(t)
+	if err := st.Step(game.Input{Start: true}); err != nil {
+		t.Fatalf("Step start: %v", err)
+	}
+
+	firstPad := st.Sequence[0]
+	if err := st.Step(game.Input{Pad: firstPad, Press: true}); err != nil {
+		t.Fatalf("Step early press: %v", err)
+	}
+
+	stepMany(t, st, 5)
+
+	if st.Phase != game.PhaseInput {
+		t.Fatalf("phase = %v, want %v after buffered early press", st.Phase, game.PhaseInput)
+	}
+	if st.InputIndex != 1 {
+		t.Fatalf("input index = %d, want 1 after buffered early press", st.InputIndex)
+	}
+	if st.Score != 1 {
+		t.Fatalf("score = %d, want 1 after buffered early press", st.Score)
+	}
+}
+
+func TestLastCorrectInputStaysLitBeforeNextRound(t *testing.T) {
+	t.Parallel()
+
+	st := newState(t)
+	if err := st.Step(game.Input{Start: true}); err != nil {
+		t.Fatalf("Step start: %v", err)
+	}
+	stepMany(t, st, 6)
+
+	lastPad := st.Sequence[len(st.Sequence)-1]
+	for i, pad := range st.Sequence {
+		if err := st.Step(game.Input{Pad: pad, Press: true}); err != nil {
+			t.Fatalf("Step correct pad %d: %v", pad, err)
+		}
+		if i == len(st.Sequence)-1 {
+			break
+		}
+	}
+
+	if st.Phase != game.PhaseInput {
+		t.Fatalf("phase = %v, want %v while acknowledging final input", st.Phase, game.PhaseInput)
+	}
+	if st.LitPad != lastPad {
+		t.Fatalf("lit pad = %d, want %d for final input flash", st.LitPad, lastPad)
+	}
+	if st.Round != 1 {
+		t.Fatalf("round = %d, want 1 before delayed round advance", st.Round)
+	}
+
+	if err := st.Step(game.Input{}); err != nil {
+		t.Fatalf("Step advance round: %v", err)
+	}
+
+	if st.Phase != game.PhaseShowing {
+		t.Fatalf("phase = %v, want %v after delayed round advance", st.Phase, game.PhaseShowing)
+	}
+	if st.Round != 2 {
+		t.Fatalf("round = %d, want 2 after delayed round advance", st.Round)
+	}
+}
+
 func TestCorrectSequenceAdvancesRoundAndShortensTiming(t *testing.T) {
 	t.Parallel()
 
@@ -145,6 +212,10 @@ func TestCorrectSequenceAdvancesRoundAndShortensTiming(t *testing.T) {
 		if err := st.Step(game.Input{Pad: pad, Press: true}); err != nil {
 			t.Fatalf("Step correct pad %d: %v", pad, err)
 		}
+	}
+
+	if err := st.Step(game.Input{}); err != nil {
+		t.Fatalf("Step start next round: %v", err)
 	}
 
 	if st.Phase != game.PhaseShowing {

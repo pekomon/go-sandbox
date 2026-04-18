@@ -48,12 +48,15 @@ type State struct {
 	InputTimeoutTicks int
 	PhaseTick         int
 	WatchdogTick      int
+	BufferedPad       int
 
 	baseShowTicks         int
 	baseGapTicks          int
 	baseInputTimeoutTicks int
 	startLength           int
 	rng                   *rand.Rand
+	bufferedPress         bool
+	pendingRoundAdvance   bool
 }
 
 func DefaultConfig() Config {
@@ -88,6 +91,7 @@ func New(cfg Config) (*State, error) {
 		Height:                cfg.Height,
 		PadCount:              cfg.PadCount,
 		Phase:                 PhaseAttract,
+		BufferedPad:           -1,
 		LitPad:                -1,
 		ShowTicks:             cfg.ShowTicks,
 		GapTicks:              cfg.GapTicks,
@@ -111,9 +115,10 @@ func (s *State) Step(in Input) error {
 			return s.beginRound(true)
 		}
 	case PhaseShowing:
+		s.captureBufferedPress(in)
 		s.advanceShowPhase()
-		if s.Phase == PhaseInput && in.Press {
-			s.advanceInputPhase(in)
+		if s.Phase == PhaseInput {
+			s.advanceInputPhase(s.takeBufferedOrCurrentInput(in))
 		}
 	case PhaseInput:
 		s.advanceInputPhase(in)
@@ -142,11 +147,14 @@ func (s *State) reset() {
 	s.ShowIndex = 0
 	s.InputIndex = 0
 	s.LitPad = -1
+	s.BufferedPad = -1
 	s.ShowTicks = s.baseShowTicks
 	s.GapTicks = s.baseGapTicks
 	s.InputTimeoutTicks = s.baseInputTimeoutTicks
 	s.PhaseTick = 0
 	s.WatchdogTick = 0
+	s.bufferedPress = false
+	s.pendingRoundAdvance = false
 }
 
 func (s *State) beginRound(fresh bool) error {
@@ -167,8 +175,32 @@ func (s *State) beginRound(fresh bool) error {
 	s.InputIndex = 0
 	s.PhaseTick = 0
 	s.WatchdogTick = 0
+	s.bufferedPress = false
+	s.pendingRoundAdvance = false
+	s.BufferedPad = -1
 	s.LitPad = s.Sequence[0]
 	return nil
+}
+
+func (s *State) captureBufferedPress(in Input) {
+	if !in.Press {
+		return
+	}
+	s.bufferedPress = true
+	s.BufferedPad = in.Pad
+}
+
+func (s *State) takeBufferedOrCurrentInput(in Input) Input {
+	if s.bufferedPress {
+		buffered := Input{
+			Pad:   s.BufferedPad,
+			Press: true,
+		}
+		s.bufferedPress = false
+		s.BufferedPad = -1
+		return buffered
+	}
+	return in
 }
 
 func (s *State) nextPad() int {
@@ -226,6 +258,18 @@ func (s *State) advanceShowPhase() {
 }
 
 func (s *State) advanceInputPhase(in Input) {
+	if s.pendingRoundAdvance {
+		if s.PhaseTick > 0 {
+			s.PhaseTick--
+			if s.PhaseTick == 0 {
+				s.LitPad = -1
+				s.pendingRoundAdvance = false
+				_ = s.beginRound(false)
+			}
+		}
+		return
+	}
+
 	if in.Press {
 		if in.Pad < 0 || in.Pad >= s.PadCount {
 			s.Phase = PhaseGameOver
@@ -244,7 +288,7 @@ func (s *State) advanceInputPhase(in Input) {
 		s.Score++
 		s.InputIndex++
 		if s.InputIndex >= len(s.Sequence) {
-			_ = s.beginRound(false)
+			s.pendingRoundAdvance = true
 		}
 		return
 	}
