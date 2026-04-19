@@ -129,7 +129,7 @@ func TestInputOnShowPhaseBoundaryIsAccepted(t *testing.T) {
 	}
 }
 
-func TestEarlyInputDuringShowPhaseIsIgnored(t *testing.T) {
+func TestEarlyInputDuringShowPhaseCutsToInput(t *testing.T) {
 	t.Parallel()
 
 	st := newState(t)
@@ -142,16 +142,35 @@ func TestEarlyInputDuringShowPhaseIsIgnored(t *testing.T) {
 		t.Fatalf("Step early press: %v", err)
 	}
 
-	stepMany(t, st, 5)
-
 	if st.Phase != game.PhaseInput {
-		t.Fatalf("phase = %v, want %v after ignored early press", st.Phase, game.PhaseInput)
+		t.Fatalf("phase = %v, want %v after cutting playback", st.Phase, game.PhaseInput)
 	}
-	if st.InputIndex != 0 {
-		t.Fatalf("input index = %d, want 0 after ignored early press", st.InputIndex)
+	if st.InputIndex != 1 {
+		t.Fatalf("input index = %d, want 1 after cutting playback", st.InputIndex)
 	}
-	if st.Score != 0 {
-		t.Fatalf("score = %d, want 0 after ignored early press", st.Score)
+	if st.Score != 1 {
+		t.Fatalf("score = %d, want 1 after cutting playback", st.Score)
+	}
+	if st.LitPad != firstPad {
+		t.Fatalf("lit pad = %d, want %d after cutting playback", st.LitPad, firstPad)
+	}
+}
+
+func TestWrongEarlyInputDuringShowPhaseEndsGame(t *testing.T) {
+	t.Parallel()
+
+	st := newState(t)
+	if err := st.Step(game.Input{Start: true}); err != nil {
+		t.Fatalf("Step start: %v", err)
+	}
+
+	wrongPad := (st.Sequence[0] + 1) % st.PadCount
+	if err := st.Step(game.Input{Pad: wrongPad, Press: true}); err != nil {
+		t.Fatalf("Step wrong early press: %v", err)
+	}
+
+	if st.Phase != game.PhaseGameOver {
+		t.Fatalf("phase = %v, want %v after wrong early press", st.Phase, game.PhaseGameOver)
 	}
 }
 

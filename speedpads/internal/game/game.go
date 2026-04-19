@@ -115,6 +115,11 @@ func (s *State) Step(in Input) error {
 			return s.beginRound(true)
 		}
 	case PhaseShowing:
+		if in.Press {
+			s.startInputPhase()
+			s.advanceInputPhase(in)
+			return nil
+		}
 		s.advanceShowPhase()
 		if s.Phase == PhaseInput {
 			if in.Press {
@@ -235,6 +240,14 @@ func (s *State) advanceShowPhase() {
 	}
 
 	s.LitPad = s.Sequence[s.ShowIndex]
+}
+
+func (s *State) startInputPhase() {
+	s.Phase = PhaseInput
+	s.InputIndex = 0
+	s.WatchdogTick = 0
+	s.PhaseTick = 0
+	s.LitPad = -1
 }
 
 func (s *State) advanceInputPhase(in Input) {
