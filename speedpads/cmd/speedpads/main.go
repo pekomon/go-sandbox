@@ -1,17 +1,22 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/pekomon/go-sandbox/speedpads/internal/game"
 )
+
+const sampleRate = 44100
 
 var backgroundColor = color.RGBA{0x10, 0x12, 0x18, 0xff}
 
@@ -30,7 +35,18 @@ var dimPadColors = []color.RGBA{
 }
 
 type app struct {
-	state *game.State
+	state       *game.State
+	audio       *audio.Context
+	padSounds   []*audio.Player
+	gameOver    *audio.Player
+	lastLitPad  int
+	lastPhase   game.Phase
+}
+
+type soundSpec struct {
+	frequency float64
+	duration  float64
+	volume    float64
 }
 
 func newApp() (*app, error) {
@@ -38,7 +54,25 @@ func newApp() (*app, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &app{state: st}, nil
+
+	ctx := audio.NewContext(sampleRate)
+	padSounds, err := newPadPlayers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	gameOver, err := newGameOverPlayer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &app{
+		state:      st,
+		audio:      ctx,
+		padSounds:  padSounds,
+		gameOver:   gameOver,
+		lastLitPad: st.LitPad,
+		lastPhase:  st.Phase,
+	}, nil
 }
 
 func (a *app) Update() error {
@@ -67,7 +101,12 @@ func (a *app) Update() error {
 		in.Press = true
 	}
 
-	return a.state.Step(in)
+	if err := a.state.Step(in); err != nil {
+		return err
+	}
+
+	a.playAudioEvents()
+	return nil
 }
 
 func (a *app) Draw(screen *ebiten.Image) {
@@ -113,6 +152,99 @@ func main() {
 	if err := ebiten.RunGame(app); err != nil && !errors.Is(err, ebiten.Termination) {
 		log.Fatal(err)
 	}
+}
+
+func newPadPlayers(ctx *audio.Context) ([]*audio.Player, error) {
+	specs := []soundSpec{
+		{frequency: 392, duration: 0.08, volume: 0.18},
+		{frequency: 493.88, duration: 0.08, volume: 0.18},
+		{frequency: 587.33, duration: 0.08, volume: 0.18},
+		{frequency: 783.99, duration: 0.08, volume: 0.18},
+	}
+
+	players := make([]*audio.Player, 0, len(specs))
+	for _, spec := range specs {
+		player, err := newTonePlayer(ctx, []soundSpec{spec})
+		if err != nil {
+			return nil, err
+		}
+		players = append(players, player)
+	}
+
+	return players, nil
+}
+
+func newGameOverPlayer(ctx *audio.Context) (*audio.Player, error) {
+	return newTonePlayer(ctx, []soundSpec{
+		{frequency: 220, duration: 0.12, volume: 0.20},
+		{frequency: 174.61, duration: 0.12, volume: 0.18},
+		{frequency: 130.81, duration: 0.18, volume: 0.18},
+	})
+}
+
+func newTonePlayer(ctx *audio.Context, specs []soundSpec) (*audio.Player, error) {
+	return ctx.NewPlayerFromBytes(synthesizeTone(specs)), nil
+}
+
+func synthesizeTone(specs []soundSpec) []byte {
+	totalSamples := 0
+	for _, spec := range specs {
+		totalSamples += int(float64(sampleRate) * spec.duration)
+	}
+
+	data := make([]byte, totalSamples*4)
+	offset := 0
+	for _, spec := range specs {
+		segmentSamples := int(float64(sampleRate) * spec.duration)
+		for i := 0; i < segmentSamples; i++ {
+			progress := float64(i) / float64(segmentSamples)
+			envelope := 1.0
+			if progress < 0.08 {
+				envelope = progress / 0.08
+			} else if progress > 0.84 {
+				envelope = (1.0 - progress) / 0.16
+			}
+			if envelope < 0 {
+				envelope = 0
+			}
+
+			value := math.Sin(2*math.Pi*spec.frequency*float64(i)/sampleRate) * spec.volume * envelope
+			sample := int16(value * math.MaxInt16)
+			binary.LittleEndian.PutUint16(data[offset:], uint16(sample))
+			binary.LittleEndian.PutUint16(data[offset+2:], uint16(sample))
+			offset += 4
+		}
+	}
+	return data
+}
+
+func (a *app) playAudioEvents() {
+	if a.lastPhase == game.PhaseShowing && a.state.Phase == game.PhaseShowing &&
+		a.state.LitPad >= 0 && a.state.LitPad != a.lastLitPad {
+		a.playPlayer(a.padSounds[a.state.LitPad])
+	}
+
+	if a.lastPhase != game.PhaseShowing && a.state.Phase == game.PhaseShowing && a.state.LitPad >= 0 {
+		a.playPlayer(a.padSounds[a.state.LitPad])
+	}
+
+	if a.lastPhase != game.PhaseGameOver && a.state.Phase == game.PhaseGameOver {
+		a.playPlayer(a.gameOver)
+	}
+
+	a.lastLitPad = a.state.LitPad
+	a.lastPhase = a.state.Phase
+}
+
+func (a *app) playPlayer(player *audio.Player) {
+	if player == nil {
+		return
+	}
+	player.Pause()
+	if err := player.Rewind(); err != nil {
+		return
+	}
+	player.Play()
 }
 
 func padLabel(pad int) string {
