@@ -1,6 +1,6 @@
 # Speedpads
 
-Speedpads is a Speden Spelit inspired memory-speed game built with Ebiten. The current implementation includes the core show/input loop, deterministic sequence generation, round-to-round speed ramping, and watchdog timeouts for stalled input.
+Speedpads is a Speden Spelit inspired memory-speed game built with Ebiten. The current version includes a playable four-pad loop, deterministic sequence generation, playback audio cues, a game-over tone, round-to-round speed ramping, and watchdog timeouts for stalled input.
 
 ## Installation
 
@@ -35,14 +35,20 @@ go run ./cmd/speedpads
 ```
 
 Controls:
-- `Space` to start
+- `Space` or `Enter` to start
 - `D`, `F`, `J`, `K` for the four pads
 - `R` to restart after game over
 - `Esc` to quit
 
+Gameplay notes:
+- The game replays the full sequence each round and then waits for your input.
+- If you already know the sequence, you can start pressing during playback. The first press cuts the remaining playback and switches immediately to input mode.
+- The game plays distinct tones when it flashes sequence pads and a separate descending tone on game over.
+- Your own button presses stay silent so only the playback and failure cues make sound.
+
 ## Testing & Coverage
 
-The gameplay tests cover the deterministic sequence, show phase, input phase, watchdog timeout, and round progression behavior.
+The gameplay tests cover deterministic sequence generation, show-to-input transitions, early-input handling, watchdog timeout, and round progression behavior.
 
 ```bash
 cd speedpads
@@ -60,5 +66,6 @@ make cover
 ## Development notes
 
 - Rendering uses [Ebiten v2](https://ebiten.org/) to match the existing GUI games in this repository.
+- Audio cues are synthesized in code with Ebiten's audio package; there are no external sound assets.
 - Core game rules live in `internal/game`.
 - Follow the shared repository conventions in [../agents.md](../agents.md).
